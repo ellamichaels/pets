@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ella's Dog Walks — Coming Soon</title>
+<meta name="description" content="Ella's Dog Walks: neighborhood dog walks, drop-ins and puppy visits. Coming soon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Rubik:wght@500;700;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mint: #8EF0C9;
+    --plum: #2A0B26;
+    --rose: #EE3DA4;
+    --rose-deep: #C92584;
+    --cream: #FFF1E0;
+    --ink: #3A0B2A;
+    --grass: #2E7D6F;
+    --vh: 1vh;
+  }
+  @supports (height: 100svh) { :root { --vh: 1svh; } }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-x: clip; -webkit-tap-highlight-color: transparent; }
+  body { min-height: calc(100 * var(--vh)); background: var(--mint); color: var(--plum); font-family: "Rubik", system-ui, sans-serif; display: flex; flex-direction: column; }
+  a { color: inherit; }
+
+  main { flex: 1; display: grid; place-items: center; text-align: center; padding: 56px 16px 40px; }
+  .logo { display: flex; flex-direction: column; align-items: center; line-height: .9; }
+  .logo .script { font-family: "Pacifico", cursive; font-weight: 400; font-size: clamp(64px, 13vw, 160px); color: var(--plum); text-shadow: 4px 5px 0 var(--rose); transform: rotate(-6deg); display: inline-block; }
+  .logo .block { font-weight: 900; text-transform: uppercase; font-size: clamp(54px, 11.5vw, 150px); letter-spacing: -.02em; }
+
+  .soon {
+    display: inline-block; margin: clamp(22px, 4vh, 36px) 0 18px; padding: 12px 28px 10px;
+    background: var(--rose); color: var(--cream); border: 3px solid var(--plum); border-radius: 999px;
+    font-family: "Permanent Marker", cursive; font-size: clamp(22px, 3vw, 30px); letter-spacing: .02em;
+    box-shadow: 0 5px 0 var(--plum); transform: rotate(-3deg);
+    animation: wiggle 3.2s ease-in-out infinite;
+  }
+  @keyframes wiggle { 0%, 80%, 100% { transform: rotate(-3deg); } 86% { transform: rotate(3deg) scale(1.04); } 92% { transform: rotate(-5deg); } }
+  main p { font-size: clamp(17px, 2vw, 21px); font-weight: 500; max-width: 480px; margin: 0 auto 22px; line-height: 1.45; }
+  .email {
+    display: inline-block; background: var(--plum); color: var(--mint); text-decoration: none;
+    font-weight: 900; text-transform: uppercase; font-size: 15px; letter-spacing: .02em;
+    padding: 13px 26px; border-radius: 999px; box-shadow: 0 4px 0 var(--rose); transition: transform .15s, box-shadow .15s;
+  }
+  .email:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 0 6px 0 var(--rose); }
+  .email:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--rose); }
+
+  /* ---------- the street ---------- */
+  .street { position: relative; height: clamp(120px, 20vh, 170px); flex: none; }
+  .grass { position: absolute; left: 0; right: 0; bottom: 38%; height: 50%; background: var(--grass); }
+  .grass svg { position: absolute; left: 0; bottom: 100%; width: 100%; height: 26px; display: block; }
+  .flower { position: absolute; bottom: 52%; width: 22px; animation: sway 3s ease-in-out infinite alternate; transform-origin: bottom center; }
+  @keyframes sway { from { rotate: -10deg; } to { rotate: 10deg; } }
+  .sidewalk { position: absolute; left: 0; right: 0; bottom: 0; height: 38%; background: var(--cream); border-top: 4px solid var(--plum);
+    background-image: repeating-linear-gradient(90deg, transparent 0 178px, rgba(58,11,42,.18) 178px 181px); }
+
+  .dog-run { position: absolute; left: 0; bottom: 8%; width: clamp(96px, 13vh, 130px); animation: cross 14s linear infinite; z-index: 2; }
+  @keyframes cross { from { transform: translateX(-160px); } to { transform: translateX(calc(100vw + 20px)); } }
+  .dog { width: 100%; overflow: visible; display: block; }
+  .dog .leg { transform-box: fill-box; transform-origin: 50% 8%; }
+  .dog .l1, .dog .l4 { animation: step .36s ease-in-out infinite alternate; }
+  .dog .l2, .dog .l3 { animation: step .36s ease-in-out infinite alternate-reverse; }
+  @keyframes step { from { transform: rotate(24deg); } to { transform: rotate(-24deg); } }
+  .dog .bodyg { animation: trot .18s ease-in-out infinite alternate; }
+  @keyframes trot { to { transform: translateY(-2px); } }
+  .dog .tail { transform-box: view-box; transform-origin: 28px 50px; animation: wag .25s ease-in-out infinite alternate; }
+  @keyframes wag { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
+
+  .paw { position: fixed; pointer-events: none; z-index: 99; width: 26px; height: 26px; animation: pawpop .8s ease-out forwards; }
+  @keyframes pawpop { 0% { transform: translate(-50%,-50%) scale(.2) rotate(var(--r)); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .soon, .flower, .dog *, .paw { animation: none !important; }
+    .dog-run { animation: none; left: 50%; translate: -50% 0; }
+    .paw { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div>
+    <h1 class="logo"><span class="script">Ella's</span><span class="block">Dog Walks</span></h1>
+    <div class="soon">Coming soon!</div>
+    <p>Neighborhood dog walks, drop-ins &amp; puppy visits. The leash is almost on.</p>
+    <a class="email" href="mailto:hello@ellamichaels.com">hello@ellamichaels.com</a>
+  </div>
+</main>
+
+<div class="street" aria-hidden="true">
+  <div class="grass">
+    <svg viewBox="0 0 1440 26" preserveAspectRatio="none" id="edge"></svg>
+  </div>
+  <div class="sidewalk"></div>
+  <div class="dog-run">
+    <svg class="dog" viewBox="0 0 134 100">
+      <g class="bodyg">
+        <rect class="leg l2" x="40" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke="#3A0B2A" stroke-width="2.5"/>
+        <rect class="leg l4" x="86" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke="#3A0B2A" stroke-width="2.5"/>
+        <path class="tail" d="M28 50 Q 12 40 14 22" stroke="#C98A4B" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="62" cy="54" rx="38" ry="19" fill="#E8B07A" stroke="#3A0B2A" stroke-width="3"/>
+        <rect class="leg l1" x="30" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke="#3A0B2A" stroke-width="3"/>
+        <rect class="leg l3" x="76" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke="#3A0B2A" stroke-width="3"/>
+        <rect x="88" y="36" width="8" height="20" rx="3" fill="#EE3DA4" stroke="#3A0B2A" stroke-width="2" transform="rotate(-18 92 46)"/>
+        <g>
+          <ellipse cx="106" cy="34" rx="17" ry="15" fill="#E8B07A" stroke="#3A0B2A" stroke-width="3"/>
+          <ellipse cx="121" cy="41" rx="11" ry="7.5" fill="#F2CFA4" stroke="#3A0B2A" stroke-width="3"/>
+          <path d="M116 47 q 3 11 8 0z" fill="#EE3DA4" stroke="#3A0B2A" stroke-width="2"/>
+          <circle cx="130" cy="38" r="4" fill="#3A0B2A"/>
+          <circle cx="110" cy="29" r="2.8" fill="#3A0B2A"/>
+          <path d="M98 21 C 86 21, 84 42, 92 50 C 99 45, 104 32, 98 21Z" fill="#B97842" stroke="#3A0B2A" stroke-width="2.5"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<script>
+  // jagged grass top + a few daisies
+  let d = 'M0 26 ';
+  for (let x = 0; x <= 1440; x += 12) d += `L${x} ${4 + Math.random() * 12} L${x + 6} ${16 + Math.random() * 8} `;
+  document.getElementById('edge').innerHTML = `<path d="${d} L1440 26 Z" fill="#2E7D6F"/>`;
+  const daisy = '<svg viewBox="0 0 40 60"><path d="M20 26 V60" stroke="#8EF0C9" stroke-width="4"/><g fill="#FFF1E0" stroke="#3A0B2A" stroke-width="1.5"><circle cx="20" cy="8" r="6.5"/><circle cx="32" cy="16" r="6.5"/><circle cx="28" cy="30" r="6.5"/><circle cx="12" cy="30" r="6.5"/><circle cx="8" cy="16" r="6.5"/></g><circle cx="20" cy="19" r="6" fill="#EE3DA4" stroke="#3A0B2A" stroke-width="1.5"/></svg>';
+  const street = document.querySelector('.street');
+  [6, 19, 33, 52, 68, 81, 94].forEach((x, i) => {
+    const f = document.createElement('div'); f.className = 'flower'; f.innerHTML = daisy;
+    f.style.left = x + '%'; f.style.animationDelay = -i * .7 + 's';
+    street.insertBefore(f, street.querySelector('.sidewalk'));
+  });
+
+  // no word-highlighting on double/triple click
+  addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
+
+  // paw prints on click
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pawSVG = '<svg viewBox="0 0 24 24" fill="#EE3DA4" stroke="#2A0B26" stroke-width="1"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
+  addEventListener('click', e => {
+    if (reduce) return;
+    for (let i = 0; i < 4; i++) {
+      const p = document.createElement('div'); p.className = 'paw'; p.innerHTML = pawSVG;
+      const a = Math.random() * Math.PI * 2, r = 30 + Math.random() * 40;
+      p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+      p.style.setProperty('--dx', Math.cos(a) * r + 'px'); p.style.setProperty('--dy', Math.sin(a) * r + 'px');
+      p.style.setProperty('--r', (Math.random() * 60 - 30) + 'deg');
+      document.body.appendChild(p); setTimeout(() => p.remove(), 800);
+    }
+  });
+</script>
+</body>
+</html>
