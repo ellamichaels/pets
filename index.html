@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ella's Dog Walks — The Walk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Rubik:wght@400;500;700;900&family=Permanent+Marker&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #EE3DA4;
+    --rose-deep: #000;
+    --mint: #8EF0C9;
+    --mint-deep: #3FC495;
+    --mist: #54B6A5;
+    --mist-deep: #3C9988;
+    --cream: #FFF1E0;
+    --ink: #3A0B2A;
+    --sun: #FFF1E0;
+    --coral: #FF7A59;
+    --intro-bg: #8EF0C9; --on-intro: #2A0B26; --on-mint: #3A0B2A;
+    --hill-far: #5A3A6E; --hill-near: #2E5E62; --tree-a: #C92584; --tree-b: #1F5E55; --grass: #2E7D6F; --water: #7CC8B9; --edge: #EE3DA4;
+    --vh: 1vh;
+    --dogx: 6vw;
+    --dogw: clamp(110px, 15vh, 150px);
+  }
+  @supports (height: 100svh) { :root { --vh: 1svh; } }
+  @media (max-width: 700px) { :root { --dogx: 2vw; --dogw: 104px; } }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-x: clip; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--intro-bg); color: var(--on-intro); font-family: "Rubik", system-ui, sans-serif; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; }
+
+  /* ---------- NAV ---------- */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px clamp(14px, 3vw, 32px); pointer-events: none; }
+  .nav > * { pointer-events: auto; }
+  .brand { font-family: "Pacifico", cursive; font-size: 26px; color: var(--mint); text-decoration: none; text-shadow: 2px 2px 0 var(--ink); }
+  .nav-r { display: flex; gap: 10px; align-items: center; }
+  .skip { font-weight: 700; font-size: 13px; text-transform: uppercase; background: rgba(58,11,42,.55); color: var(--cream); padding: 9px 14px; border-radius: 999px; text-decoration: none; backdrop-filter: blur(4px); }
+  .pill { display: inline-block; background: var(--mint); color: var(--on-mint); font-weight: 900; text-transform: uppercase; text-decoration: none; padding: 11px 22px; border-radius: 999px; font-size: 14px; box-shadow: 0 4px 0 var(--mint-deep); transition: transform .15s, box-shadow .15s; }
+  .pill:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 0 6px 0 var(--mint-deep); }
+  .pill:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--mint-deep); }
+  @media (max-width: 520px) { .skip { display: none; } }
+
+  /* ---------- INTRO (Luigi's-style) ---------- */
+  .intro { position: relative; min-height: calc(100 * var(--vh)); display: grid; place-items: center; text-align: center; padding: 84px 16px 90px; overflow: hidden; }
+  .logo { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0 .25em; line-height: .9; }
+  .logo .script { font-family: "Pacifico", cursive; color: var(--mint); font-size: clamp(54px, 9.5vw, 132px); transform: rotate(-6deg); display: inline-block; text-shadow: 4px 5px 0 var(--rose-deep); }
+  .logo .block { font-weight: 900; text-transform: uppercase; font-size: clamp(48px, 9vw, 126px); letter-spacing: -.02em; }
+  .intro .logo { flex-direction: column; align-items: center; margin-bottom: clamp(24px, 4vh, 40px); }
+  .go { color: inherit; cursor: pointer; text-decoration: none; display: inline-flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+  .pawtrail { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 4px; }
+  .pawtrail svg { width: 28px; height: 28px; fill: currentColor; opacity: 0; animation: pawstep 1.8s ease-in-out infinite; rotate: 180deg; }
+  .pawtrail svg:nth-child(odd) { translate: -12px 0; } .pawtrail svg:nth-child(even) { translate: 12px 0; }
+  .pawtrail svg:nth-child(2) { animation-delay: .3s; } .pawtrail svg:nth-child(3) { animation-delay: .6s; }
+  @keyframes pawstep { 0%, 100% { opacity: 0; } 20%, 60% { opacity: 1; } }
+  .grass-edge { position: absolute; left: 0; right: 0; width: 100%; bottom: -1px; height: 50px; }
+  .intro-inner { position: relative; z-index: 2; width: min(1000px, 100%); }
+  .daisy-dec { position: absolute; width: 46px; animation: sway 3s ease-in-out infinite alternate; }
+  @keyframes sway { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+
+  /* ---------- THE WALK ---------- */
+  .walk { position: relative; height: calc(var(--stops) * 115 * var(--vh)); }
+  .stage { position: sticky; top: 0; height: calc(100 * var(--vh)); overflow: hidden; background: linear-gradient(var(--sky1, #9ED9CF), var(--sky2, #FFF1E0)); }
+  .layer { position: absolute; left: 0; right: 0; background-repeat: repeat-x; background-size: auto 100%; background-position-x: var(--x, 0); }
+  .masked { -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x; -webkit-mask-size: auto 100%; mask-size: auto 100%; -webkit-mask-position: var(--x, 0) 0; mask-position: var(--x, 0) 0; background-image: none !important; transition: background-color .4s; }
+  .clouds { top: 8%; height: 22%; opacity: .95;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='220'%3E%3Cg fill='%23FFF6E6'%3E%3Cellipse cx='120' cy='90' rx='72' ry='26'/%3E%3Cellipse cx='165' cy='70' rx='46' ry='32'/%3E%3Cellipse cx='92' cy='76' rx='34' ry='22'/%3E%3Cellipse cx='590' cy='160' rx='92' ry='24'/%3E%3Cellipse cx='630' cy='138' rx='52' ry='32'/%3E%3C/g%3E%3Cg fill='none' stroke='%233A0B2A' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M380 60 q8 -8 16 0 q8 -8 16 0'/%3E%3Cpath d='M420 85 q6 -6 12 0 q6 -6 12 0'/%3E%3C/g%3E%3C/svg%3E"); }
+  .hills-far { bottom: 22%; height: 34%;
+    background-color: var(--hill-far); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='300'%3E%3Cpath d='M0 300 L0 170 C 200 80 420 210 620 140 S 1000 70 1200 170 L1200 300 Z' fill='%23A6E3D7'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='300'%3E%3Cpath d='M0 300 L0 170 C 200 80 420 210 620 140 S 1000 70 1200 170 L1200 300 Z' fill='%23A6E3D7'/%3E%3C/svg%3E"); }
+  .hills-near { bottom: 22%; height: 24%;
+    background-color: var(--hill-near); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='260'%3E%3Cpath d='M0 260 L0 150 C 160 90 300 200 460 140 S 760 100 900 150 L900 260 Z' fill='%237CC8B9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='260'%3E%3Cpath d='M0 260 L0 150 C 160 90 300 200 460 140 S 760 100 900 150 L900 260 Z' fill='%237CC8B9'/%3E%3C/svg%3E"); }
+  .trees-mid { bottom: 21%; height: 30%; }
+  .trees-trunk { background-color: #7A4E2D; -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Crect x='74' y='160' width='12' height='100'/%3E%3Crect x='324' y='170' width='12' height='90'/%3E%3Crect x='574' y='150' width='14' height='110'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Crect x='74' y='160' width='12' height='100'/%3E%3Crect x='324' y='170' width='12' height='90'/%3E%3Crect x='574' y='150' width='14' height='110'/%3E%3C/svg%3E"); }
+  .trees-a { background-color: var(--tree-a); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Ccircle cx='80' cy='140' r='52'/%3E%3Ccircle cx='46' cy='170' r='32'/%3E%3Ccircle cx='116' cy='168' r='34'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Ccircle cx='80' cy='140' r='52'/%3E%3Ccircle cx='46' cy='170' r='32'/%3E%3Ccircle cx='116' cy='168' r='34'/%3E%3C/svg%3E"); }
+  .trees-b { background-color: var(--tree-b); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Cpolygon points='330,40 278,200 382,200'/%3E%3Ccircle cx='580' cy='120' r='56'/%3E%3Ccircle cx='545' cy='160' r='36'/%3E%3Ccircle cx='620' cy='158' r='38'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='260'%3E%3Cpolygon points='330,40 278,200 382,200'/%3E%3Ccircle cx='580' cy='120' r='56'/%3E%3Ccircle cx='545' cy='160' r='36'/%3E%3Ccircle cx='620' cy='158' r='38'/%3E%3C/svg%3E"); }
+  .grass { bottom: 0; height: 22%; background-color: var(--grass);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='120'%3E%3Cg fill='%233C9988'%3E%3Cpath d='M20 60 l4 -14 l4 14z M140 40 l3 -12 l3 12z M300 70 l4 -14 l4 14z M380 30 l3 -10 l3 10z M230 26 l3 -10 l3 10z'/%3E%3C/g%3E%3Cg%3E%3Cg fill='%23FFF6E6'%3E%3Ccircle cx='70' cy='34' r='5'/%3E%3Ccircle cx='78' cy='30' r='5'/%3E%3Ccircle cx='78' cy='40' r='5'/%3E%3Ccircle cx='86' cy='34' r='5'/%3E%3C/g%3E%3Ccircle cx='78' cy='35' r='3.5' fill='%23FFCF5C'/%3E%3Cg fill='%23EE3DA4'%3E%3Ccircle cx='200' cy='62' r='4'/%3E%3Ccircle cx='207' cy='58' r='4'/%3E%3Ccircle cx='207' cy='66' r='4'/%3E%3Ccircle cx='214' cy='62' r='4'/%3E%3C/g%3E%3Ccircle cx='207' cy='62' r='3' fill='%23FFCF5C'/%3E%3Cg fill='%23FFF6E6'%3E%3Ccircle cx='340' cy='22' r='4'/%3E%3Ccircle cx='347' cy='18' r='4'/%3E%3Ccircle cx='347' cy='26' r='4'/%3E%3Ccircle cx='354' cy='22' r='4'/%3E%3C/g%3E%3Ccircle cx='347' cy='22' r='3' fill='%23FFCF5C'/%3E%3C/g%3E%3C/svg%3E"); }
+  .sidewalk { bottom: 0; height: 10%; background-color: var(--cream); border-top: 4px solid var(--ink);
+    background-image: repeating-linear-gradient(90deg, transparent 0 178px, rgba(58,11,42,.18) 178px 181px); background-size: auto; }
+  .sun { position: absolute; width: clamp(80px, 14vmin, 150px); aspect-ratio: 1; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 14px rgba(255,207,92,.25), 0 0 0 30px rgba(255,207,92,.12); transform: translate(-50%, -50%); }
+
+  /* world: all the things you pass */
+  .world { position: absolute; inset: 0; will-change: transform; }
+  .stop { position: absolute; top: 0; bottom: 0; width: 100vw; }
+  .obj { position: absolute; bottom: 9.5%; }
+  .card {
+    position: absolute; left: 58%; bottom: calc(27 * var(--vh)); translate: -50% 0;
+    width: min(440px, 86vw); max-height: calc(100 * var(--vh) - 27 * var(--vh) - 96px); overflow: auto;
+    background: var(--cream); color: var(--ink); border-radius: 18px; padding: clamp(16px, 2.6vh, 26px);
+    box-shadow: 0 14px 40px rgba(58,11,42,.28); border: 3px solid var(--ink);
+    opacity: .35; scale: .92; transition: opacity .4s ease, scale .4s ease;
+  }
+  .stop.here .card { opacity: 1; scale: 1; }
+  @media (min-width: 701px) { .card { left: min(var(--cx, 58vw), calc(100vw - 76px - min(220px, 43vw))) !important; } }
+  @media (max-width: 700px) { .card { left: 50%; bottom: calc(23 * var(--vh)); max-height: calc(100 * var(--vh) - 23 * var(--vh) - 110px); } }
+  .tag { display: inline-flex; align-items: center; gap: 6px; background: var(--mint); color: var(--on-mint); font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: .06em; padding: 5px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .card h2 { font-weight: 900; text-transform: uppercase; font-size: clamp(26px, 4.4vh, 40px); line-height: .95; color: var(--rose); margin-bottom: 10px; letter-spacing: -.01em; }
+  .card h2 .s { font-family: "Pacifico"; text-transform: none; font-weight: 400; color: var(--mist); font-size: .8em; }
+  .card p { font-size: clamp(14px, 2vh, 17px); line-height: 1.5; }
+  .card .row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 2px dashed rgba(58,11,42,.18); font-size: clamp(14px, 2vh, 17px); }
+  .card .row b { font-weight: 900; }
+  .card h3 { font-weight: 900; text-transform: uppercase; font-size: 13px; color: var(--mist-deep); margin: 10px 0 2px; letter-spacing: .06em; }
+
+  /* stop 1: about */
+  .about-grid { display: grid; grid-template-columns: 110px 1fr; gap: 16px; align-items: center; }
+  .about-grid img { aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 3px solid var(--rose); }
+  @media (max-width: 700px) { .about-grid { grid-template-columns: 70px 1fr; } }
+
+  /* stop 2: flyer on lamppost */
+  .flyer { rotate: 2deg; border-style: dashed; }
+  .flyer::before { content: ""; position: absolute; top: 8px; left: 50%; width: 90px; height: 20px; margin-left: -45px; background: rgba(58,11,42,.25); rotate: -3deg; }
+
+  /* stop 3: hydrant */
+  .checks { list-style: none; display: grid; gap: 6px; margin-top: 6px; }
+  .checks li { font-size: clamp(14px, 2vh, 17px); padding-left: 28px; position: relative; }
+  .checks li::before { content: "✓"; position: absolute; left: 0; top: -1px; width: 20px; height: 20px; border-radius: 50%; background: var(--mint); color: var(--on-mint); display: grid; place-items: center; font-weight: 900; font-size: 12px; }
+
+  /* stop 4: park notice board */
+  .board { background: #F6E3C4; border: 8px solid #7A4E2D; border-radius: 6px; overflow: visible; max-height: none; }
+  .board::before, .board::after { content: ""; position: absolute; top: 100%; width: 14px; height: calc(18 * var(--vh)); background: #7A4E2D; z-index: -1; }
+  .board::before { left: 18%; } .board::after { right: 18%; }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-top: 6px; }
+  .week b { display: block; font-weight: 900; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
+  .week i { display: block; height: clamp(14px, 2.6vh, 22px); border-radius: 6px; margin-bottom: 4px; border: 2px solid var(--ink); }
+  .week i.o { background: var(--mint); }
+  .week i.x { background: repeating-linear-gradient(45deg, transparent 0 3px, rgba(58,11,42,.35) 3px 5px); }
+  .week i.n { border-style: dashed; opacity: .35; }
+  .key { display: flex; gap: 14px; font-size: 12px; margin-top: 6px; font-weight: 500; }
+  .key span::before { content: ""; display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 3px; margin-right: 5px; vertical-align: -2px; }
+  .key .ko::before { background: var(--mint); }
+  .key .kx::before { background: repeating-linear-gradient(45deg, transparent 0 2px, rgba(58,11,42,.4) 2px 3px); }
+  .board .times { font-size: 11px; margin-top: 4px; opacity: .75; }
+
+  /* stop 5: polaroids on a string */
+  .string { background: none; border: 0; box-shadow: none; padding: 0; overflow: visible; width: min(720px, 94vw); max-height: none; }
+  .string .line { position: absolute; left: -6%; right: -6%; top: 14px; height: 40px; border-top: 3px solid var(--ink); border-radius: 50%; }
+  .string .heading { text-align: center; margin-bottom: 30px; }
+  .string .heading span { background: var(--cream); color: var(--ink); padding: 6px 14px; border-radius: 999px; font-weight: 900; text-transform: uppercase; font-size: 13px; border: 3px solid var(--ink); }
+  .pols { display: flex; justify-content: center; gap: clamp(6px, 1.4vw, 16px); }
+  .pols figure { background: #fff; padding: 6px 6px 24px; width: clamp(68px, 12vw, 128px); box-shadow: 0 8px 20px rgba(58,11,42,.3); position: relative; transform-origin: top center; animation: swing 3s ease-in-out infinite alternate; }
+  .pols figure:nth-child(2) { animation-delay: -1s; margin-top: 14px; } .pols figure:nth-child(3) { animation-delay: -2s; margin-top: 22px; } .pols figure:nth-child(4) { animation-delay: -.5s; margin-top: 14px; }
+  .pols figure::before { content: ""; position: absolute; top: -10px; left: 50%; width: 10px; height: 16px; margin-left: -5px; background: var(--rose); border-radius: 2px; }
+  .pols img { aspect-ratio: 1; object-fit: cover; }
+  .pols figcaption { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-family: "Permanent Marker"; font-size: 12px; color: var(--ink); }
+  @keyframes swing { from { rotate: -4deg; } to { rotate: 4deg; } }
+  @media (max-width: 700px) { .pols figure:nth-child(5) { display: none; } }
+
+  /* stop 6: chalkboard A-frame */
+  .chalk { background: #2D3B36; color: #F4F1EA; border: 8px solid #7A4E2D; font-family: "Gochi Hand", cursive; overflow: visible; max-height: none; }
+  .chalk::before, .chalk::after { content: ""; position: absolute; top: 96%; width: 10px; height: calc(17 * var(--vh)); background: #7A4E2D; z-index: -1; }
+  .chalk::before { left: 8%; rotate: 8deg; transform-origin: top; } .chalk::after { right: 8%; rotate: -8deg; transform-origin: top; }
+  .chalk h2 { font-family: "Gochi Hand"; color: var(--mint); text-transform: none; font-weight: 400; font-size: clamp(30px, 5vh, 44px); }
+  .chalk .q { font-size: clamp(17px, 2.5vh, 22px); line-height: 1.25; min-height: 3.8em; transition: opacity .3s; }
+  .chalk .who { color: #FFB8DE; font-size: 19px; margin-top: 6px; }
+  .chalk .dots { display: flex; gap: 6px; margin-top: 10px; }
+  .chalk .dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(244,241,234,.3); }
+  .chalk .dots i.on { background: var(--mint); }
+
+  /* stop 7: home */
+  .home-card { text-align: center; }
+  .stats { display: flex; justify-content: center; gap: 10px; margin: 10px 0 16px; flex-wrap: wrap; }
+  .stats div { background: var(--mint); color: var(--on-mint); border-radius: 12px; padding: 8px 12px; font-weight: 900; font-size: 20px; line-height: 1; border: 2px solid var(--ink); }
+  .stats small { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; font-weight: 700; }
+
+  /* scene objects */
+  .house { height: calc(46 * var(--vh)); }
+  .lamp { height: calc(62 * var(--vh)); }
+  .hydrant { height: calc(10 * var(--vh)); bottom: 4%; }
+  .bigtree { height: calc(58 * var(--vh)); }
+  .bench { height: calc(10 * var(--vh)); }
+  .pond { bottom: 10.5%; height: calc(7 * var(--vh)); }
+  .duck { position: absolute; bottom: 12%; height: calc(4.5 * var(--vh)); animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 50% { translate: 0 -4px; } }
+  .squirrel { position: absolute; height: calc(6 * var(--vh)); transition: transform 1.2s cubic-bezier(.3,1.4,.5,1); }
+  .stop.here .squirrel { transform: translateY(calc(-26 * var(--vh))) rotate(-90deg); }
+  .mush { height: calc(4 * var(--vh)); bottom: 10.5%; }
+  .sign-post { height: calc(16 * var(--vh)); }
+
+  /* the dog */
+  .dogwrap { position: absolute; left: var(--dogx); bottom: calc(1.6 * var(--vh)); width: var(--dogw); z-index: 5; transition: transform .25s; }
+  .dog { width: 100%; overflow: visible; display: block; transition: transform .25s; }
+  .dogwrap.back .dog { transform: scaleX(-1); }
+  .dog .leg { transform-box: fill-box; transform-origin: 50% 8%; }
+  .walking .dog .l1, .walking .dog .l4 { animation: step .36s ease-in-out infinite alternate; }
+  .walking .dog .l2, .walking .dog .l3 { animation: step .36s ease-in-out infinite alternate-reverse; }
+  @keyframes step { from { transform: rotate(24deg); } to { transform: rotate(-24deg); } }
+  .walking .dog .bodyg { animation: trot .18s ease-in-out infinite alternate; }
+  @keyframes trot { to { transform: translateY(-2px); } }
+  .dog .tail { transform-box: view-box; transform-origin: 28px 50px; animation: wag .5s ease-in-out infinite alternate; }
+  @keyframes wag { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
+  .dog .head { transform-box: view-box; transform-origin: 94px 46px; transition: transform .35s; }
+  .dog .tongue { opacity: 0; transition: opacity .2s; }
+  .sniff .dog .head { transform: rotate(30deg); animation: sniffs .3s ease-in-out infinite alternate; }
+  @keyframes sniffs { from { transform: rotate(28deg); } to { transform: rotate(33deg); } }
+  .excited .dog { animation: hop .45s ease-in-out infinite; }
+  .excited .dog .tail { animation-duration: .14s; }
+  .excited .dog .tongue, .happy .dog .tongue { opacity: 1; }
+  .happy .dog .tail { animation-duration: .22s; }
+  @keyframes hop { 50% { transform: translateY(-18px); } }
+  .bubble { position: absolute; left: 70%; bottom: 100%; background: #fff; color: var(--ink); font-family: "Permanent Marker"; font-size: 15px; padding: 6px 10px; border-radius: 12px; border: 2px solid var(--ink); white-space: nowrap; opacity: 0; translate: 0 6px; transition: opacity .25s, translate .25s; }
+  .bubble.on { opacity: 1; translate: 0 0; }
+
+  /* falling leaves + butterflies */
+  .leaf { position: absolute; top: -40px; width: 18px; height: 18px; border-radius: 0 70% 0 70%; animation: fall linear infinite; opacity: .9; z-index: 4; pointer-events: none; }
+  @keyframes fall { to { transform: translate(var(--drift), calc(110 * var(--vh))) rotate(540deg); } }
+  .fly { position: absolute; width: 30px; z-index: 4; animation: flutter 9s ease-in-out infinite; pointer-events: none; }
+  .fly svg { animation: flap .18s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes flap { to { transform: scaleX(.35); } }
+  @keyframes flutter { 0% { translate: 0 0; } 25% { translate: 14vw -6vh; } 50% { translate: 26vw 3vh; } 75% { translate: 12vw 8vh; } 100% { translate: 0 0; } }
+
+  /* ---------- METER (from #3, now a trail) ---------- */
+  .meter { position: fixed; right: clamp(10px, 1.6vw, 22px); top: 50%; translate: 0 -50%; z-index: 55; display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; transition: opacity .3s; }
+  .meter.on { opacity: 1; }
+  .meter .track { position: relative; width: 6px; height: 46vh; border-radius: 6px; background: rgba(58,11,42,.2); }
+  .meter .fill { position: absolute; left: 0; top: 0; width: 100%; height: 0; border-radius: 6px; background: var(--ink); }
+  .meter .ms { position: absolute; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--cream); border: 3px solid var(--ink); cursor: pointer; padding: 0; }
+  .meter .ms.done { background: var(--mint); }
+  .meter .ms::after { content: attr(data-label); position: absolute; right: 24px; top: 50%; translate: 0 -50%; background: var(--ink); color: var(--cream); font: 700 12px "Rubik"; padding: 4px 8px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
+  .meter .ms:hover::after, .meter .ms.cur::after { opacity: 1; }
+  .meter .paw { position: absolute; left: 50%; top: 0; width: 30px; height: 30px; translate: -50% -50%; pointer-events: none; }
+  .meter .dist { font-weight: 900; font-size: 13px; background: var(--cream); color: var(--ink); padding: 4px 8px; border-radius: 8px; border: 2px solid var(--ink); font-variant-numeric: tabular-nums; }
+  @media (max-width: 700px) {
+    .meter { top: 62px; right: 14px; left: 14px; translate: none; flex-direction: row; }
+    .meter .track { width: auto; flex: 1; height: 6px; }
+    .meter .fill { height: 100% !important; width: 0; }
+    .meter .ms { top: 50% !important; }
+    .meter .ms::after { display: none; }
+    .meter .paw { top: 50% !important; width: 26px; height: 26px; }
+  }
+
+  /* mint hero, plum "Ella's" */
+  .logo .script { color: #2A0B26; text-shadow: 4px 5px 0 #EE3DA4; }
+  .brand { color: #2A0B26; text-shadow: 2px 2px 0 #EE3DA4; transition: color .3s; }
+  .pill { background: #2A0B26; color: #8EF0C9; box-shadow: 0 4px 0 #EE3DA4; }
+  .pill:hover { box-shadow: 0 6px 0 #EE3DA4; }
+  .pill:active { box-shadow: 0 1px 0 #EE3DA4; }
+  .skip { background: transparent; color: #2A0B26; border: 2.5px solid #2A0B26; padding: 7px 14px; backdrop-filter: none; transition: color .3s, border-color .3s; }
+  .skip:hover { background: #2A0B26; color: #8EF0C9; }
+  /* over the night-sky walk, the nav flips to light colors */
+  .nav.dark .brand { color: #8EF0C9; text-shadow: 2px 2px 0 #2A0B26; }
+  .nav.dark .pill { background: #8EF0C9; color: #2A0B26; box-shadow: 0 4px 0 #EE3DA4; }
+  .nav.dark .skip { color: #FFF1E0; border-color: #FFF1E0; }
+  .nav.dark .skip:hover { background: #FFF1E0; color: #2A0B26; }
+  .sun { box-shadow: 0 0 0 14px rgba(255,241,224,.15), 0 0 40px 30px rgba(255,241,224,.15); }
+
+  /* ---------- QUICK INFO (on the landing screen) ---------- */
+  .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .menu { grid-template-columns: 1fr; } }
+  .menu > div { background: var(--cream); color: var(--ink); border-radius: 16px; padding: clamp(16px, 2.4vh, 24px) 20px; text-align: center; border: 3px solid var(--ink); }
+  .menu h3 { font-weight: 900; text-transform: uppercase; color: var(--rose); font-size: 19px; margin-bottom: 6px; }
+  .menu li { list-style: none; line-height: 1.75; font-size: 16px; }
+  .center { text-align: center; margin-top: clamp(18px, 3vh, 28px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pawtrail svg { animation: none; opacity: 1; }
+    .leaf, .fly, .daisy-dec, .pols figure, .duck, .dog .tail { animation: none !important; }
+    .leaf, .fly { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="#top" onclick="scrollTo({top:0});return false">Ella's</a>
+  <div class="nav-r"><a class="skip" href="#walk">Take the walk ↓</a><a class="pill" href="mailto:hello@ellamichaels.com">Book a walk</a></div>
+</nav>
+
+<!-- ============ INTRO + QUICK INFO ============ -->
+<header class="intro" id="top">
+  <div class="intro-inner">
+    <h1 class="logo"><span class="script">Ella's</span><span class="block">Dog Walks</span></h1>
+    <div class="menu" id="quick">
+      <div><h3>Walks</h3><ul><li>30 min · $25</li><li>45 min · $32</li><li>60 min · $40</li></ul></div>
+      <div><h3>Drop-ins</h3><ul><li>Potty break · $18</li><li>Puppy visit · $22</li><li>Feed + play · $25</li></ul></div>
+      <div><h3>Availability</h3><ul><li>Mon–Fri · 7am–7pm</li><li>Weekends · mornings &amp; midday</li><li>Free meet &amp; greet</li></ul></div>
+    </div>
+    <div class="center"><a class="pill" href="mailto:hello@ellamichaels.com">Book a walk · hello@ellamichaels.com</a></div>
+    <a class="go" href="#walk"><span>Or come along on a walk</span><span class="pawtrail"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg></span></a>
+  </div>
+  <svg class="grass-edge" viewBox="0 0 1440 50" preserveAspectRatio="none" id="edge"></svg>
+</header>
+
+<!-- ============ THE WALK ============ -->
+<section class="walk" id="walk" style="--stops: 7">
+  <div class="stage" id="stage">
+    <div class="sun" id="sun"></div>
+    <div class="layer clouds" data-f=".08"></div>
+    <div class="layer masked hills-far" data-f=".18"></div>
+    <div class="layer masked hills-near" data-f=".32"></div>
+    <div class="layer masked trees-mid trees-trunk" data-f=".55"></div>
+    <div class="layer masked trees-mid trees-a" data-f=".55"></div>
+    <div class="layer masked trees-mid trees-b" data-f=".55"></div>
+    <div class="layer grass" data-f="1"></div>
+    <div class="layer sidewalk" data-f="1"></div>
+
+    <div class="world" id="world">
+
+      <!-- STOP 1 — front door -->
+      <div class="stop" data-name="Front door" data-dog="happy" data-say="Walk?! WALK!!">
+        <svg class="obj house" style="left:-2vw" viewBox="0 0 220 230"><rect x="20" y="90" width="180" height="140" stroke-width="5" style="fill:var(--cream);stroke:var(--ink)"/><polygon points="8,96 110,14 212,96" stroke-width="5" stroke-linejoin="round" style="fill:var(--rose);stroke:var(--ink)"/><rect x="128" y="140" width="46" height="90" rx="4" stroke-width="5" style="fill:var(--mist);stroke:var(--ink)"/><circle cx="164" cy="186" r="4" style="fill:var(--sun)"/><rect x="40" y="120" width="56" height="48" stroke-width="5" style="fill:var(--water);stroke:var(--ink)"/><line x1="68" y1="120" x2="68" y2="168" stroke-width="4" style="stroke:var(--ink)"/><rect x="34" y="168" width="68" height="14" fill="#7A4E2D" stroke-width="4" style="stroke:var(--ink)"/><g style="fill:var(--rose)"><circle cx="46" cy="164" r="6"/><circle cx="62" cy="160" r="6"/><circle cx="78" cy="164" r="6"/><circle cx="94" cy="160" r="6"/></g><rect x="122" y="222" width="58" height="8" stroke-width="3" style="fill:var(--sun);stroke:var(--ink)"/></svg>
+        <div class="card">
+          <span class="tag">Stop 1 · Pickup</span>
+          <h2>Hi, I'm <span class="s">Ella</span></h2>
+          <div class="about-grid">
+            <img src="https://placedog.net/300/300?id=41" alt="Ella">
+            <p>I let myself in, top up the water bowl, and clip on the leash. Every pup gets my full attention and a photo update when we're back. Insured &amp; Pet CPR certified.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOP 2 — lamppost flyer -->
+      <div class="stop" data-name="Lamppost">
+        <svg class="obj lamp" style="left:36vw" viewBox="0 0 70 320"><rect x="30" y="40" width="10" height="280" style="fill:var(--ink)"/><path d="M35 40 Q 35 10 60 12" stroke-width="8" fill="none" style="stroke:var(--ink)"/><path d="M48 12 h26 l-6 18 h-14z" style="fill:var(--ink)"/><ellipse cx="61" cy="34" rx="8" ry="5" style="fill:var(--sun)"/><rect x="22" y="300" width="26" height="20" style="fill:var(--ink)"/></svg>
+        <div class="card flyer">
+          <span class="tag">Stop 2 · Saw this flyer</span>
+          <h2>Rates <span class="s">&amp; walks</span></h2>
+          <h3>Walks</h3>
+          <div class="row"><span>30 min walk</span><b>$25</b></div>
+          <div class="row"><span>45 min walk</span><b>$32</b></div>
+          <div class="row"><span>60 min adventure</span><b>$40</b></div>
+          <h3>Drop-ins</h3>
+          <div class="row"><span>Potty break</span><b>$18</b></div>
+          <div class="row"><span>Puppy visit / feed + play</span><b>$22–25</b></div>
+          <h3>Extras</h3>
+          <div class="row"><span>2nd dog · weekend</span><b>+$10 · +$5</b></div>
+        </div>
+      </div>
+
+      <!-- STOP 3 — hydrant -->
+      <div class="stop" data-name="Sniff break" data-dog="sniff" data-say="*sniff sniff*">
+        <svg class="obj hydrant" style="left:calc(var(--dogx) + var(--dogw) - 4px)" viewBox="0 0 60 90"><rect x="14" y="20" width="32" height="64" rx="6" stroke-width="4" style="fill:var(--coral);stroke:var(--ink)"/><path d="M12 22 Q 30 0 48 22z" stroke-width="4" style="fill:var(--coral);stroke:var(--ink)"/><rect x="4" y="40" width="52" height="12" rx="5" stroke-width="4" style="fill:var(--coral);stroke:var(--ink)"/><rect x="8" y="82" width="44" height="8" style="fill:var(--ink)"/></svg>
+        <svg class="obj mush" style="left:70vw" viewBox="0 0 40 30"><path d="M4 16 Q20 -4 36 16z" stroke-width="3" style="fill:var(--rose);stroke:var(--ink)"/><rect x="15" y="15" width="10" height="14" rx="3" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><circle cx="14" cy="10" r="2.5" style="fill:var(--cream)"/><circle cx="24" cy="8" r="2" style="fill:var(--cream)"/></svg>
+        <div class="card">
+          <span class="tag">Stop 3 · Very important sniff</span>
+          <h2>Every walk <span class="s">includes</span></h2>
+          <ul class="checks">
+            <li>As many sniff breaks as needed</li>
+            <li>Fresh water &amp; a towel-off after</li>
+            <li>A photo update, every single visit</li>
+            <li>Leash-pullers &amp; shy pups welcome</li>
+            <li>Free meet &amp; greet first</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- STOP 4 — park notice board -->
+      <div class="stop" data-name="The park">
+        <svg class="obj bigtree" style="left:-4vw" viewBox="0 0 200 300"><rect x="88" y="150" width="24" height="150" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--tree-a);stroke:var(--ink)"><circle cx="100" cy="100" r="70"/><circle cx="50" cy="140" r="44"/><circle cx="152" cy="138" r="46"/></g><g style="fill:var(--cream)"><circle cx="80" cy="80" r="6"/><circle cx="130" cy="110" r="5"/><circle cx="60" cy="140" r="5"/><circle cx="150" cy="150" r="4"/></g></svg>
+        <svg class="obj bench" style="left:24vw" viewBox="0 0 120 60"><rect x="6" y="10" width="108" height="10" rx="3" stroke-width="3" style="fill:var(--coral);stroke:var(--ink)"/><rect x="6" y="26" width="108" height="10" rx="3" stroke-width="3" style="fill:var(--coral);stroke:var(--ink)"/><rect x="16" y="36" width="8" height="24" style="fill:var(--ink)"/><rect x="96" y="36" width="8" height="24" style="fill:var(--ink)"/></svg>
+        <svg class="obj bigtree" style="left:84vw" viewBox="0 0 200 300"><rect x="88" y="150" width="24" height="150" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--tree-b);stroke:var(--ink)"><circle cx="100" cy="96" r="70"/><circle cx="52" cy="140" r="42"/><circle cx="150" cy="136" r="44"/></g></svg>
+        <div class="card board">
+          <span class="tag">Stop 4 · Park notice board</span>
+          <h2>This <span class="s">week</span></h2>
+          <div class="week" id="week"></div>
+          <div class="key"><span class="ko">Open</span><span class="kx">Booked</span></div>
+          <div class="times">Morning 7–10 · Midday 11–2 · Evening 4–7</div>
+        </div>
+      </div>
+
+      <!-- STOP 5 — pond + the regulars -->
+      <div class="stop" data-name="The pond" data-dog="happy" data-say="Ducks!!">
+        <svg class="obj bigtree" style="left:-2vw" viewBox="0 0 200 300"><rect x="88" y="150" width="24" height="150" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--tree-b);stroke:var(--ink)"><circle cx="100" cy="96" r="70"/><circle cx="52" cy="140" r="42"/><circle cx="150" cy="136" r="44"/></g></svg>
+        <svg class="obj pond" style="left:34vw;width:46vw" viewBox="0 0 400 60" preserveAspectRatio="none"><ellipse cx="200" cy="30" rx="196" ry="26" stroke-width="4" style="fill:var(--water);stroke:var(--ink)"/><path d="M120 30 q 20 -6 40 0 M240 22 q 16 -5 32 0" stroke-width="4" fill="none" stroke-linecap="round" style="stroke:var(--cream)"/></svg>
+        <svg class="duck" style="left:46vw" viewBox="0 0 50 36"><ellipse cx="22" cy="24" rx="18" ry="10" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><circle cx="36" cy="12" r="8" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><path d="M43 12 l7 2 l-7 3z" stroke-width="2" style="fill:var(--sun);stroke:var(--ink)"/><circle cx="37" cy="10" r="1.6" style="fill:var(--ink)"/></svg>
+        <svg class="duck" style="left:62vw;animation-delay:-1s" viewBox="0 0 50 36"><ellipse cx="22" cy="24" rx="18" ry="10" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><circle cx="36" cy="12" r="8" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><path d="M43 12 l7 2 l-7 3z" stroke-width="2" style="fill:var(--sun);stroke:var(--ink)"/><circle cx="37" cy="10" r="1.6" style="fill:var(--ink)"/></svg>
+        <svg class="obj bigtree" style="left:86vw" viewBox="0 0 200 300"><rect x="88" y="150" width="24" height="150" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--tree-a);stroke:var(--ink)"><circle cx="100" cy="100" r="70"/><circle cx="50" cy="140" r="44"/><circle cx="152" cy="138" r="46"/></g></svg>
+        <div class="card string" style="--cx:50vw">
+          <div class="line"></div>
+          <div class="heading"><span>Stop 5 · Friends we see every day</span></div>
+          <div class="pols">
+            <figure><img src="https://placedog.net/300/300?id=5" alt=""><figcaption>Biscuit</figcaption></figure>
+            <figure><img src="https://placedog.net/300/300?id=8" alt=""><figcaption>Mochi</figcaption></figure>
+            <figure><img src="https://placedog.net/300/300?id=19" alt=""><figcaption>Pepper</figcaption></figure>
+            <figure><img src="https://placedog.net/300/300?id=33" alt=""><figcaption>Lulu</figcaption></figure>
+            <figure><img src="https://placedog.net/300/300?id=37" alt=""><figcaption>Rocco</figcaption></figure>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOP 6 — squirrel + chalkboard reviews -->
+      <div class="stop" data-name="Squirrel!" data-dog="excited" data-say="SQUIRREL!!!">
+        <svg class="obj bigtree" style="left:calc(var(--dogx) + var(--dogw) + 2vw)" viewBox="0 0 200 300"><rect x="86" y="130" width="28" height="170" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--coral);stroke:var(--ink)"><circle cx="100" cy="90" r="66"/><circle cx="54" cy="130" r="40"/><circle cx="148" cy="128" r="42"/></g><g style="fill:var(--sun)"><circle cx="76" cy="70" r="6"/><circle cx="126" cy="96" r="6"/></g></svg>
+        <svg class="squirrel" style="left:calc(var(--dogx) + var(--dogw) + 2vw + 6vh);bottom:10%" viewBox="0 0 50 50"><path d="M14 40 C -4 36, 0 6, 16 10 C 8 18, 12 30, 20 34z" fill="#B97842" stroke-width="2.5" style="stroke:var(--ink)"/><ellipse cx="28" cy="36" rx="12" ry="10" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/><circle cx="38" cy="26" r="7" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/><circle cx="40" cy="25" r="1.5" style="fill:var(--ink)"/><path d="M35 19 l2 -5 l3 5z" fill="#C98A4B" stroke-width="2" style="stroke:var(--ink)"/></svg>
+        <div class="card chalk" style="--cx:62vw">
+          <h2>Neighbors say…</h2>
+          <div class="q" id="chalkq"></div>
+          <div class="who" id="chalkw"></div>
+          <div class="dots" id="chalkd"></div>
+        </div>
+      </div>
+
+      <!-- STOP 7 — home at sunset -->
+      <div class="stop" data-name="Home" data-dog="happy" data-say="Best. Walk. Ever.">
+        <svg class="obj house" style="left:calc(var(--dogx) + var(--dogw) - 2vw)" viewBox="0 0 220 230"><rect x="20" y="90" width="180" height="140" stroke-width="5" style="fill:var(--cream);stroke:var(--ink)"/><polygon points="8,96 110,14 212,96" stroke-width="5" stroke-linejoin="round" style="fill:var(--rose);stroke:var(--ink)"/><rect x="40" y="140" width="46" height="90" rx="4" stroke-width="5" style="fill:var(--mist);stroke:var(--ink)"/><circle cx="76" cy="186" r="4" style="fill:var(--sun)"/><rect x="118" y="120" width="56" height="48" stroke-width="5" style="fill:var(--sun);stroke:var(--ink)"/><line x1="146" y1="120" x2="146" y2="168" stroke-width="4" style="stroke:var(--ink)"/><rect x="34" y="222" width="58" height="8" stroke-width="3" style="fill:var(--sun);stroke:var(--ink)"/></svg>
+        <div class="card home-card" style="--cx:66vw">
+          <span class="tag">Stop 7 · Back home</span>
+          <h2>Walk <span class="s">complete!</span></h2>
+          <div class="stats"><div>1.2<small>miles</small></div><div>23<small>sniffs</small></div><div>1<small>squirrel</small></div><div>∞<small>tail wags</small></div></div>
+          <p style="margin-bottom:16px">Want this for your pup? Tell me about them and I'll set up a free meet &amp; greet.</p>
+          <a class="pill" href="mailto:hello@ellamichaels.com">Book a walk</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="dogwrap" id="dog">
+      <div class="bubble" id="bubble"></div>
+      <svg class="dog" viewBox="0 0 134 100" aria-label="A happy dog walking">
+        <g class="bodyg">
+          <rect class="leg l2" x="40" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/>
+          <rect class="leg l4" x="86" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/>
+          <path class="tail" d="M28 50 Q 12 40 14 22" stroke="#C98A4B" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <ellipse cx="62" cy="54" rx="38" ry="19" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
+          <rect class="leg l1" x="30" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
+          <rect class="leg l3" x="76" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
+          <rect x="88" y="36" width="8" height="20" rx="3" stroke-width="2" transform="rotate(-18 92 46)" style="fill:var(--rose);stroke:var(--ink)"/>
+          <g class="head">
+            <ellipse cx="106" cy="34" rx="17" ry="15" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
+            <ellipse cx="121" cy="41" rx="11" ry="7.5" fill="#F2CFA4" stroke-width="3" style="stroke:var(--ink)"/>
+            <path class="tongue" d="M116 47 q 3 11 8 0z" stroke-width="2" style="fill:var(--rose);stroke:var(--ink)"/>
+            <circle cx="130" cy="38" r="4" style="fill:var(--ink)"/>
+            <circle cx="110" cy="29" r="2.8" style="fill:var(--ink)"/>
+            <path d="M98 21 C 86 21, 84 42, 92 50 C 99 45, 104 32, 98 21Z" fill="#B97842" stroke-width="2.5" style="stroke:var(--ink)"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- trail meter -->
+<div class="meter" id="meter" aria-hidden="true">
+  <div class="track" id="track"><div class="fill" id="fill"></div>
+    <svg class="paw" id="mpaw" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" stroke-width="2" style="fill:var(--rose);stroke:var(--ink)"/><g style="fill:var(--cream)"><ellipse cx="12" cy="14.5" rx="3.6" ry="3"/><circle cx="7.5" cy="10.5" r="1.6"/><circle cx="10.3" cy="7.6" r="1.6"/><circle cx="13.7" cy="7.6" r="1.6"/><circle cx="16.5" cy="10.5" r="1.6"/></g></svg>
+  </div>
+  <div class="dist" id="dist">0.00 mi</div>
+</div>
+
+<script>
+  const nav = document.querySelector('.nav');
+  const walk = document.getElementById('walk'), stage = document.getElementById('stage'), world = document.getElementById('world');
+  const stops = [...world.querySelectorAll('.stop')], N = stops.length;
+  const layers = [...stage.querySelectorAll('.layer')];
+  const dog = document.getElementById('dog'), bubble = document.getElementById('bubble'), sun = document.getElementById('sun');
+  const meter = document.getElementById('meter'), track = document.getElementById('track'), fill = document.getElementById('fill'), mpaw = document.getElementById('mpaw'), dist = document.getElementById('dist');
+  const MILES = 1.2;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  stops.forEach((s, i) => s.style.left = i * 100 + 'vw');
+
+  // grass edge on the intro
+  (() => {
+    let d = 'M0 50 ';
+    for (let x = 0; x <= 1440; x += 12) d += `L${x} ${20 + Math.random() * 22} L${x + 6} ${36 + Math.random() * 10} `;
+    document.getElementById('edge').innerHTML = `<path d="${d} L1440 50 Z" style="fill:var(--edge)"/>`;
+  })();
+
+  // availability board (placeholder data)
+  const week = { Mon: 'oxo', Tue: 'xoo', Wed: 'oox', Thu: 'oxo', Fri: 'ooo', Sat: 'oxn', Sun: 'xon' };
+  document.getElementById('week').innerHTML = Object.entries(week).map(([d, s]) => `<div><b>${d}</b>${[...s].map(c => `<i class="${c}"></i>`).join('')}</div>`).join('');
+
+  // chalkboard reviews
+  const reviews = [
+    ['"Biscuit literally waits by the door for Ella."', '— Sarah & Biscuit'],
+    ['"Our nervous rescue was trotting along by week two."', '— Marcus & Duke'],
+    ['"Reliable, on time, and the photos make my whole workday."', '— Jamie & Mochi'],
+  ];
+  const cq = document.getElementById('chalkq'), cw = document.getElementById('chalkw'), cd = document.getElementById('chalkd');
+  reviews.forEach(() => cd.appendChild(document.createElement('i')));
+  let ri = 0;
+  const showReview = () => { cq.textContent = reviews[ri][0]; cw.textContent = reviews[ri][1]; [...cd.children].forEach((d, i) => d.classList.toggle('on', i === ri)); };
+  showReview();
+  setInterval(() => { ri = (ri + 1) % reviews.length; showReview(); }, 4200);
+
+  // meter milestones
+  const ms = stops.map((s, i) => {
+    const b = document.createElement('button'); b.className = 'ms'; b.dataset.label = s.dataset.name; b.setAttribute('aria-label', s.dataset.name);
+    const pct = i / (N - 1) * 100;
+    b.style.top = pct + '%'; b.style.left = '';
+    b.onclick = () => scrollTo({ top: walk.offsetTop + (walk.offsetHeight - innerHeight) * i / (N - 1), behavior: 'smooth' });
+    track.appendChild(b); return b;
+  });
+  const horiz = matchMedia('(max-width: 700px)');
+  const placeMs = () => ms.forEach((b, i) => { const pct = i / (N - 1) * 100; if (horiz.matches) { b.style.left = pct + '%'; b.style.top = ''; } else { b.style.top = pct + '%'; b.style.left = ''; } });
+  horiz.addEventListener('change', placeMs); placeMs();
+
+  // falling leaves + butterflies
+  if (!reduce) {
+    const leafColors = ['#EE3DA4', '#FF7A59', '#FFCF5C', '#3FC495', '#F47DC0'];
+    for (let i = 0; i < 9; i++) {
+      const l = document.createElement('div'); l.className = 'leaf';
+      l.style.left = Math.random() * 100 + '%'; l.style.background = leafColors[i % leafColors.length];
+      l.style.animationDuration = 9 + Math.random() * 8 + 's'; l.style.animationDelay = -Math.random() * 15 + 's';
+      l.style.setProperty('--drift', (Math.random() * 30 - 15) + 'vw');
+      stage.appendChild(l);
+    }
+    [['#EE3DA4', '18%', '30%', 0], ['#FFCF5C', '55%', '22%', -4]].forEach(([c, x, y, d]) => {
+      const f = document.createElement('div'); f.className = 'fly'; f.style.left = x; f.style.top = y; f.style.animationDelay = d + 's';
+      f.innerHTML = `<svg viewBox="0 0 30 24"><ellipse cx="9" cy="9" rx="8" ry="7" fill="${c}" stroke="#3A0B2A" stroke-width="2"/><ellipse cx="21" cy="9" rx="8" ry="7" fill="${c}" stroke="#3A0B2A" stroke-width="2"/><ellipse cx="10" cy="18" rx="5" ry="4" fill="${c}" stroke="#3A0B2A" stroke-width="2"/><ellipse cx="20" cy="18" rx="5" ry="4" fill="${c}" stroke="#3A0B2A" stroke-width="2"/><rect x="14" y="4" width="2" height="18" rx="1" fill="#3A0B2A"/></svg>`;
+      stage.appendChild(f);
+    });
+  }
+
+  // sky colors through the day: morning mist -> afternoon -> rose sunset
+  const sky = [[0, '#EE3DA4', '#FFB37A'], [.4, '#7A2E6E', '#EE7DB8'], [.75, '#2A1A4A', '#5A3A7A'], [1, '#120A24', '#2A1A4A']];
+
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`; };
+  const skyAt = p => { for (let i = 1; i < sky.length; i++) if (p <= sky[i][0]) { const t = (p - sky[i - 1][0]) / (sky[i][0] - sky[i - 1][0]); return [mix(sky[i - 1][1], sky[i][1], t), mix(sky[i - 1][2], sky[i][2], t)]; } return [sky.at(-1)[1], sky.at(-1)[2]]; };
+
+  // main loop: scroll position -> eased walk progress
+  let target = 0, cur = 0;
+  const readScroll = () => {
+    const total = walk.offsetHeight - innerHeight;
+    target = Math.min(1, Math.max(0, (scrollY - walk.offsetTop) / total));
+    meter.classList.toggle('on', scrollY > walk.offsetTop - innerHeight * .5 && scrollY < walk.offsetTop + total + innerHeight * .3);
+    nav.classList.toggle('dark', scrollY >= walk.offsetTop - 30 && scrollY <= walk.offsetTop + total + 1);
+  };
+  addEventListener('scroll', readScroll, { passive: true }); addEventListener('resize', readScroll); readScroll();
+
+  let lastT = performance.now();
+  const frame = now => {
+    const dt = Math.min(100, now - lastT); lastT = now;
+    const diff = target - cur;
+    cur += diff * (reduce ? 1 : 1 - Math.exp(-dt / 140));
+    if (Math.abs(diff) < .00005) cur = target;
+    const W = innerWidth, worldX = cur * (N - 1) * W;
+    world.style.transform = `translate3d(${-worldX}px,0,0)`;
+    layers.forEach(l => l.style.setProperty('--x', -worldX * l.dataset.f + 'px'));
+
+    const [s1, s2] = skyAt(cur);
+    stage.style.setProperty('--sky1', s1); stage.style.setProperty('--sky2', s2);
+    sun.style.left = 12 + cur * 74 + '%'; sun.style.top = 62 - Math.sin(Math.PI * Math.min(cur * 1.1, 1)) * 44 + '%';
+
+    // dog: walking while the world moves, reacts at stops
+    dog.classList.toggle('walking', Math.abs(diff) > .0004);
+    if (Math.abs(diff) > .0004) dog.classList.toggle('back', diff < 0);
+    const s = cur * (N - 1), near = Math.round(s), atStop = Math.abs(s - near) < .14;
+    stops.forEach((st, i) => st.classList.toggle('here', i === near && atStop));
+    dog.classList.remove('sniff', 'excited', 'happy');
+    const st = stops[near];
+    if (atStop && st.dataset.dog) dog.classList.add(st.dataset.dog);
+    if (atStop && st.dataset.say) { bubble.textContent = st.dataset.say; bubble.classList.add('on'); } else bubble.classList.remove('on');
+
+    // meter
+    const pct = cur * 100;
+    if (horiz.matches) { fill.style.width = pct + '%'; mpaw.style.left = pct + '%'; mpaw.style.top = ''; }
+    else { fill.style.height = pct + '%'; mpaw.style.top = pct + '%'; mpaw.style.left = ''; }
+    ms.forEach((b, i) => { b.classList.toggle('done', i <= s + .01); b.classList.toggle('cur', i === near && atStop); });
+    dist.textContent = (cur * MILES).toFixed(2) + ' mi';
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+
+  // no word-highlighting on double/triple click (drag-to-select still works)
+  addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
+
+  // paw prints on click
+  const pawSVG = '<svg viewBox="0 0 24 24" fill="#8EF0C9" stroke="#3A0B2A" stroke-width="1"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
+  addEventListener('click', e => {
+    if (reduce) return;
+    for (let i = 0; i < 4; i++) {
+      const p = document.createElement('div');
+      p.style.cssText = `position:fixed;pointer-events:none;z-index:999;width:26px;height:26px;left:${e.clientX - 13}px;top:${e.clientY - 13}px;transition:transform .7s ease-out,opacity .7s`;
+      p.innerHTML = pawSVG; document.body.appendChild(p);
+      const a = Math.random() * Math.PI * 2, d = 30 + Math.random() * 40;
+      requestAnimationFrame(() => requestAnimationFrame(() => { p.style.transform = `translate(${Math.cos(a) * d}px,${Math.sin(a) * d}px) rotate(${Math.random() * 60 - 30}deg)`; p.style.opacity = 0; }));
+      setTimeout(() => p.remove(), 750);
+    }
+  });
+</script>
+</body>
+</html>
