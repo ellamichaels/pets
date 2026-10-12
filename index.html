@@ -23,21 +23,36 @@
     --hill-far: #5A3A6E; --hill-near: #2E5E62; --tree-a: #C92584; --tree-b: #1F5E55; --grass: #2E7D6F; --water: #7CC8B9; --edge: #EE3DA4;
     --vh: 1vh;
     --dogx: 6vw;
-    --dogw: clamp(110px, 15vh, 150px);
+    --dogw-base: clamp(110px, 15vh, 150px);
+    --dogw: calc(var(--dogw-base) * var(--dog-scale));
   }
+  /* which dog is walking (set by "choose your dog!") */
+  :root, [data-breed="medium"] { --dog-scale: 1; --fur: #E8B07A; --fur-dark: #C98A4B; --snout: #F2CFA4; --ear: #B97842; --floppy: inline; --pointy: none; }
+  [data-breed="big"] { --dog-scale: 1.3; --fur: #8B5A3C; --fur-dark: #6B4430; --snout: #C49A78; --ear: #5A3626; --floppy: inline; --pointy: none; }
+  [data-breed="small"] { --dog-scale: .72; --fur: #FFF6EE; --fur-dark: #E6D3C3; --snout: #FFFFFF; --ear: #F4B6C9; --floppy: none; --pointy: inline; }
+  .ear-floppy { display: var(--floppy); } .ear-pointy { display: var(--pointy); }
   @supports (height: 100svh) { :root { --vh: 1svh; } }
-  @media (max-width: 700px) { :root { --dogx: 2vw; --dogw: 104px; } }
+  @media (max-width: 700px) { :root { --dogx: 2vw; --dogw-base: 104px; } }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { overflow-x: clip; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
   body { background: var(--intro-bg); color: var(--on-intro); font-family: "Rubik", system-ui, sans-serif; }
   img { display: block; max-width: 100%; }
+  ::selection { background: #EE3DA4; color: #FFF1E0; text-shadow: none; }
+  .stage ::selection, .nav.dark ::selection { background: #8EF0C9; color: #2A0B26; }
   a { color: inherit; }
 
   /* ---------- NAV ---------- */
   .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px clamp(14px, 3vw, 32px); pointer-events: none; }
   .nav > * { pointer-events: auto; }
-  .brand { font-family: "Pacifico", cursive; font-size: 26px; color: var(--mint); text-decoration: none; text-shadow: 2px 2px 0 var(--ink); }
+  .brand { position: relative; display: inline-flex; align-items: center; text-decoration: none; padding: 2px 6px 2px 2px; }
+  .bface { display: block; overflow: hidden; border: 3px solid var(--cream); box-shadow: 0 0 0 3px var(--ink), 3px 4px 0 3px var(--rose); background: var(--cream); transition: transform .2s; }
+  .bface img { width: 100%; height: 100%; object-fit: cover; }
+  .bface.me { width: 50px; height: 50px; border-radius: 50%; rotate: -7deg; position: relative; z-index: 2; }
+  .bface.pup { width: 60px; height: 44px; border-radius: 15px; margin-left: -10px; rotate: 8deg; }
+  .bheart { position: absolute; left: 38px; bottom: -6px; z-index: 3; width: 20px; height: 20px; border-radius: 50%; background: var(--rose); color: var(--cream); border: 2px solid var(--ink); display: grid; place-items: center; font-size: 11px; line-height: 1; }
+  .brand:hover .bface.me { transform: rotate(-6deg) translateY(-2px); } .brand:hover .bface.pup { transform: rotate(6deg) translateY(-2px); }
+  @media (max-width: 520px) { .bface.me { width: 42px; height: 42px; } .bface.pup { width: 50px; height: 37px; } .bheart { left: 30px; } }
   .nav-r { display: flex; gap: 10px; align-items: center; }
   .skip { font-weight: 700; font-size: 13px; text-transform: uppercase; background: rgba(58,11,42,.55); color: var(--cream); padding: 9px 14px; border-radius: 999px; text-decoration: none; backdrop-filter: blur(4px); }
   .pill { display: inline-block; background: var(--mint); color: var(--on-mint); font-weight: 900; text-transform: uppercase; text-decoration: none; padding: 11px 22px; border-radius: 999px; font-size: 14px; box-shadow: 0 4px 0 var(--mint-deep); transition: transform .15s, box-shadow .15s; }
@@ -64,7 +79,7 @@
 
   /* ---------- THE WALK ---------- */
   .walk { position: relative; height: calc(var(--stops) * 115 * var(--vh)); }
-  .stage { position: sticky; top: 0; height: calc(100 * var(--vh)); overflow: hidden; background: linear-gradient(var(--sky1, #9ED9CF), var(--sky2, #FFF1E0)); }
+  .stage { position: sticky; top: 0; height: calc(100 * var(--vh)); overflow: hidden; overflow: clip; background: linear-gradient(var(--sky1, #9ED9CF), var(--sky2, #FFF1E0)); }
   .layer { position: absolute; left: 0; right: 0; background-repeat: repeat-x; background-size: auto 100%; background-position-x: var(--x, 0); }
   .masked { -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x; -webkit-mask-size: auto 100%; mask-size: auto 100%; -webkit-mask-position: var(--x, 0) 0; mask-position: var(--x, 0) 0; background-image: none !important; transition: background-color .4s; }
   .clouds { top: 8%; height: 22%; opacity: .95;
@@ -135,31 +150,6 @@
   .key .kx::before { background: repeating-linear-gradient(45deg, transparent 0 2px, rgba(58,11,42,.4) 2px 3px); }
   .board .times { font-size: 11px; margin-top: 4px; opacity: .75; }
 
-  /* stop 5: polaroids on a string */
-  .string { background: none; border: 0; box-shadow: none; padding: 0; overflow: visible; width: min(720px, 94vw); max-height: none; }
-  .string .line { position: absolute; left: -6%; right: -6%; top: 14px; height: 40px; border-top: 3px solid var(--ink); border-radius: 50%; }
-  .string .heading { text-align: center; margin-bottom: 30px; }
-  .string .heading span { background: var(--cream); color: var(--ink); padding: 6px 14px; border-radius: 999px; font-weight: 900; text-transform: uppercase; font-size: 13px; border: 3px solid var(--ink); }
-  .pols { display: flex; justify-content: center; gap: clamp(6px, 1.4vw, 16px); }
-  .pols figure { background: #fff; padding: 6px 6px 24px; width: clamp(68px, 12vw, 128px); box-shadow: 0 8px 20px rgba(58,11,42,.3); position: relative; transform-origin: top center; animation: swing 3s ease-in-out infinite alternate; }
-  .pols figure:nth-child(2) { animation-delay: -1s; margin-top: 14px; } .pols figure:nth-child(3) { animation-delay: -2s; margin-top: 22px; } .pols figure:nth-child(4) { animation-delay: -.5s; margin-top: 14px; }
-  .pols figure::before { content: ""; position: absolute; top: -10px; left: 50%; width: 10px; height: 16px; margin-left: -5px; background: var(--rose); border-radius: 2px; }
-  .pols img { aspect-ratio: 1; object-fit: cover; }
-  .pols figcaption { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-family: "Permanent Marker"; font-size: 12px; color: var(--ink); }
-  @keyframes swing { from { rotate: -4deg; } to { rotate: 4deg; } }
-  @media (max-width: 700px) { .pols figure:nth-child(5) { display: none; } }
-
-  /* stop 6: chalkboard A-frame */
-  .chalk { background: #2D3B36; color: #F4F1EA; border: 8px solid #7A4E2D; font-family: "Gochi Hand", cursive; overflow: visible; max-height: none; }
-  .chalk::before, .chalk::after { content: ""; position: absolute; top: 96%; width: 10px; height: calc(17 * var(--vh)); background: #7A4E2D; z-index: -1; }
-  .chalk::before { left: 8%; rotate: 8deg; transform-origin: top; } .chalk::after { right: 8%; rotate: -8deg; transform-origin: top; }
-  .chalk h2 { font-family: "Gochi Hand"; color: var(--mint); text-transform: none; font-weight: 400; font-size: clamp(30px, 5vh, 44px); }
-  .chalk .q { font-size: clamp(17px, 2.5vh, 22px); line-height: 1.25; min-height: 3.8em; transition: opacity .3s; }
-  .chalk .who { color: #FFB8DE; font-size: 19px; margin-top: 6px; }
-  .chalk .dots { display: flex; gap: 6px; margin-top: 10px; }
-  .chalk .dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(244,241,234,.3); }
-  .chalk .dots i.on { background: var(--mint); }
-
   /* stop 7: home */
   .home-card { text-align: center; }
   .stats { display: flex; justify-content: center; gap: 10px; margin: 10px 0 16px; flex-wrap: wrap; }
@@ -214,6 +204,7 @@
 
   /* ---------- METER (from #3, now a trail) ---------- */
   .meter { position: fixed; right: clamp(10px, 1.6vw, 22px); top: 50%; translate: 0 -50%; z-index: 55; display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; transition: opacity .3s; }
+  .meter:not(.on) { pointer-events: none; }
   .meter.on { opacity: 1; }
   .meter .track { position: relative; width: 6px; height: 46vh; border-radius: 6px; background: rgba(58,11,42,.2); }
   .meter .fill { position: absolute; left: 0; top: 0; width: 100%; height: 0; border-radius: 6px; background: var(--ink); }
@@ -234,30 +225,241 @@
 
   /* mint hero, plum "Ella's" */
   .logo .script { color: #2A0B26; text-shadow: 4px 5px 0 #EE3DA4; }
-  .brand { color: #2A0B26; text-shadow: 2px 2px 0 #EE3DA4; transition: color .3s; }
   .pill { background: #2A0B26; color: #8EF0C9; box-shadow: 0 4px 0 #EE3DA4; }
   .pill:hover { box-shadow: 0 6px 0 #EE3DA4; }
   .pill:active { box-shadow: 0 1px 0 #EE3DA4; }
   .skip { background: transparent; color: #2A0B26; border: 2.5px solid #2A0B26; padding: 7px 14px; backdrop-filter: none; transition: color .3s, border-color .3s; }
   .skip:hover { background: #2A0B26; color: #8EF0C9; }
   /* over the night-sky walk, the nav flips to light colors */
-  .nav.dark .brand { color: #8EF0C9; text-shadow: 2px 2px 0 #2A0B26; }
   .nav.dark .pill { background: #8EF0C9; color: #2A0B26; box-shadow: 0 4px 0 #EE3DA4; }
   .nav.dark .skip { color: #FFF1E0; border-color: #FFF1E0; }
   .nav.dark .skip:hover { background: #FFF1E0; color: #2A0B26; }
   .sun { box-shadow: 0 0 0 14px rgba(255,241,224,.15), 0 0 40px 30px rgba(255,241,224,.15); }
 
   /* ---------- QUICK INFO (on the landing screen) ---------- */
-  .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
   @media (max-width: 860px) { .menu { grid-template-columns: 1fr; } }
-  .menu > div { background: var(--cream); color: var(--ink); border-radius: 16px; padding: clamp(16px, 2.4vh, 24px) 20px; text-align: center; border: 3px solid var(--ink); }
-  .menu h3 { font-weight: 900; text-transform: uppercase; color: var(--rose); font-size: 19px; margin-bottom: 6px; }
-  .menu li { list-style: none; line-height: 1.75; font-size: 16px; }
+  .mcard { position: relative; background: var(--cream); color: var(--ink); border-radius: 16px; padding: 16px 18px 14px; text-align: center; border: 3px solid var(--ink);
+    display: flex; flex-direction: column; align-items: center; cursor: pointer; box-shadow: 0 4px 0 var(--ink); transition: transform .15s, box-shadow .15s; outline: none; }
+  .mcard:hover, .mcard:focus-visible { transform: translateY(-3px) rotate(-.6deg); box-shadow: 0 7px 0 var(--ink); }
+  .mcard:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+  .mcard:focus-visible { box-shadow: 0 7px 0 var(--ink), 0 0 0 4px var(--rose); }
+  .menu h3 { font-weight: 900; text-transform: uppercase; color: var(--rose); font-size: 19px; margin-bottom: 4px; }
+  .menu ul { list-style: none; }
+  .menu li { line-height: 1.6; font-size: 16px; }
+  .mcard .more { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--rose); border: 2px solid var(--rose); border-radius: 999px; padding: 4px 11px; transition: background .15s, color .15s; }
+  .mcard .more i { font-style: normal; display: inline-block; transition: transform .15s; }
+  .mcard:hover .more, .mcard:focus-visible .more { background: var(--rose); color: var(--cream); }
+  .mcard:hover .more i, .mcard:focus-visible .more i { transform: translateX(3px); }
   .center { text-align: center; margin-top: clamp(18px, 3vh, 28px); }
 
+
+  /* ---------- ELLA + MONROE on the title page ---------- */
+  .intro { padding-bottom: clamp(190px, 28vh, 250px); }
+  .stroll { position: absolute; left: 0; right: 0; bottom: 0; height: clamp(160px, 25vh, 220px); pointer-events: none; z-index: 1; }
+  .stroll .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 38px; border-bottom: 4px solid var(--on-intro);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='34'%3E%3Cpath d='M2 34 Q0.8 21.9 0.5 12 Q5.0 23.0 7 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M7 34 Q8.2 26.3 13.0 20 Q13.0 27.0 11 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M12 34 Q10.8 17.5 10.0 4 Q14.0 19.0 16 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M21 34 Q19.2 19.7 17.0 8 Q22.0 21.0 25 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M30 34 Q31.2 26.3 36.0 20 Q36.0 27.0 34 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M35 34 Q36.2 17.5 41.5 4 Q42.0 19.0 40 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M41 34 Q42.2 26.3 47.0 20 Q47.0 27.0 45 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M50 34 Q51.2 24.1 56.0 16 Q56.0 25.0 54 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M57 34 Q58.8 17.5 65.0 4 Q64.0 19.0 61 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M63 34 Q61.2 21.9 60.0 12 Q66.0 23.0 69 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M68 34 Q66.2 17.5 65.0 4 Q71.0 19.0 74 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M77 34 Q77.6 17.5 81.5 4 Q83.0 19.0 82 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M86 34 Q85.4 21.9 86.0 12 Q89.0 23.0 90 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M92 34 Q93.2 26.3 98.5 20 Q99.0 27.0 97 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M101 34 Q102.8 21.9 109.5 12 Q109.0 23.0 106 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M106 34 Q107.2 26.3 112.5 20 Q113.0 27.0 111 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M113 34 Q113.6 24.1 117.5 16 Q119.0 25.0 118 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M118 34 Q119.2 17.5 124.5 4 Q125.0 19.0 123 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M125 34 Q125.6 17.5 130.0 4 Q132.0 19.0 131 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M130 34 Q129.4 26.3 130.5 20 Q134.0 27.0 135 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M135 34 Q136.8 26.3 144.0 20 Q144.0 27.0 141 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M144 34 Q145.8 21.9 152.5 12 Q152.0 23.0 149 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M151 34 Q151.6 26.3 155.5 20 Q157.0 27.0 156 34Z' fill='%232E7D6F' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cpath d='M156 34 Q154.2 19.7 152.0 8 Q157.0 21.0 160 34Z' fill='%233FC495' stroke='%232A0B26' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E") repeat-x bottom / auto 100%; }
+  .intro-fly { position: absolute; left: 0; bottom: 60%; width: 30px; opacity: 0; animation: introfly 26s ease-in-out infinite 3s; }
+  .intro-fly svg { display: block; width: 100%; animation: flap .18s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes introfly {
+    0% { opacity: 0; transform: translate(-40px, 30px); } 4% { opacity: 1; }
+    12% { transform: translate(22vw, -40px) rotate(8deg); } 22% { transform: translate(44vw, 10px) rotate(-6deg); }
+    32% { transform: translate(66vw, -50px) rotate(10deg); } 40% { opacity: 1; } 44% { opacity: 0; transform: translate(100vw, -10px); }
+    100% { opacity: 0; transform: translate(100vw, -10px); }
+  }
+  .walk-track { position: absolute; inset: 0; animation: stroll 24s linear infinite; }
+  .walker { position: absolute; left: 0; bottom: 3px; height: calc(100% - 8px); }
+  .walker.twin { left: -100%; }
+  .walker svg { height: 100%; width: auto; display: block; overflow: visible; }
+  @keyframes stroll { from { transform: translateX(0); } to { transform: translateX(100%); } }
+  .walker .bod { animation: bounce .26s ease-in-out infinite alternate; }
+  @keyframes bounce { to { transform: translateY(-3px); } }
+  .walker .eleg { transform-box: view-box; transform-origin: 60px 150px; animation: swingleg .52s ease-in-out infinite alternate; }
+  .walker .eleg.b { animation-direction: alternate-reverse; }
+  .walker .earm { transform-box: view-box; transform-origin: 60px 100px; animation: swingleg .52s ease-in-out infinite alternate-reverse; }
+  @keyframes swingleg { from { transform: rotate(20deg); } to { transform: rotate(-20deg); } }
+  .walker .mleg { transform-box: fill-box; transform-origin: 50% 8%; animation: swingleg .3s ease-in-out infinite alternate; }
+  .walker .mleg.b { animation-direction: alternate-reverse; }
+  .walker .mtail { transform-box: fill-box; transform-origin: 100% 100%; animation: wag .22s ease-in-out infinite alternate; }
+
+  /* ---------- CHOOSE YOUR DOG ---------- */
+  .choose, .cats { position: relative; padding: clamp(60px, 9vh, 90px) 16px clamp(50px, 8vh, 80px); text-align: center; }
+  .choose h2, .cats h2 { font-weight: 900; text-transform: uppercase; font-size: clamp(40px, 7vw, 84px); line-height: .9; letter-spacing: -.02em; }
+  .choose h2 .s, .cats h2 .s { font-family: "Pacifico", cursive; text-transform: none; font-weight: 400; text-shadow: 3px 4px 0 var(--rose); display: inline-block; rotate: -5deg; font-size: .85em; }
+  .choose .sub, .cats .sub { margin: 16px auto 34px; font-size: clamp(16px, 1.8vw, 19px); font-weight: 500; max-width: 520px; line-height: 1.45; }
+  .picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; width: min(880px, 100%); margin: 0 auto; }
+  @media (max-width: 640px) { .picks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 12px; } }
+  .pick { position: relative; font: inherit; cursor: pointer; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px;
+    padding: 14px 10px 12px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-height: 196px;
+    box-shadow: 0 5px 0 var(--ink); transition: transform .15s, box-shadow .15s, background .2s, color .2s; }
+  .pick:hover { transform: translateY(-3px) rotate(-1deg); }
+  .pick:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+  .pick.sel { background: var(--rose); color: var(--cream); }
+  .pick.sel::after { content: "✓ walking today"; position: absolute; top: -13px; left: 50%; translate: -50% 0; background: var(--on-intro); color: var(--mint); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .pick[data-breed="cat"].sel::after { content: "✓ visiting today"; }
+  .pick .art { width: 100%; height: 118px; display: flex; align-items: flex-end; justify-content: center; }
+  .pick .art svg { display: block; overflow: visible; }
+  .pick[data-breed="big"] .art svg { width: 96%; } .pick[data-breed="medium"] .art svg { width: 74%; } .pick[data-breed="small"] .art svg { width: 54%; } .pick[data-breed="cat"] .art svg { width: 62%; }
+  .pick b { font-weight: 900; text-transform: uppercase; font-size: 17px; }
+  .pick small { font-size: 13px; opacity: .8; line-height: 1.25; }
+
+  /* ---------- CATS TOO ---------- */
+  .cats { display: none; }
+  .cats.on { display: block; }
+  .catscene { position: relative; width: min(760px, 100%); margin: 0 auto; padding-bottom: 6px; }
+  .catscene .floor { position: absolute; left: -16px; right: -16px; bottom: 0; height: 4px; background: var(--on-intro); border-radius: 4px; }
+  .chouse { position: relative; width: min(540px, 94%); margin: 0 auto; }
+  .chouse .roof { display: block; width: 100%; height: clamp(80px, 14vw, 120px); }
+  .chouse .walls { position: relative; margin: -4px 5% 0; border: 5px solid var(--ink); border-bottom: 0; overflow: hidden; min-height: 300px; }
+  .chouse .inside { padding: 24px 22px 20px; text-align: left; color: var(--ink); background: repeating-linear-gradient(90deg, #FFF1E0 0 22px, #FDE3EF 22px 44px); opacity: 0; transition: opacity .6s .3s; }
+  .chouse.open .inside { opacity: 1; }
+  .chouse .front { position: absolute; inset: 0; z-index: 2; background: var(--cream); transition: transform 1s cubic-bezier(.6,0,.3,1); }
+  .chouse.open .front { transform: translateY(-110%); }
+  .chouse.open .cdoor, .chouse.open .doorway { visibility: hidden; transition: visibility 0s .5s; }
+  .chouse .cwin { position: absolute; top: 18%; width: 22%; aspect-ratio: 1; border: 5px solid var(--ink); background: #FFE7A8; }
+  .chouse .cwin.l { left: 10%; } .chouse .cwin.r { right: 10%; }
+  .chouse .cdoor { position: absolute; left: 50%; bottom: 0; width: 70px; height: 116px; margin-left: -35px; background: var(--mist); border: 5px solid var(--ink); border-bottom: 0; border-radius: 10px 10px 0 0; transform-origin: left; transition: transform .45s ease; }
+  .chouse .cdoor::after { content: ""; position: absolute; right: 9px; top: 52%; width: 9px; height: 9px; border-radius: 50%; background: #FFCF5C; }
+  .chouse .doorway { position: absolute; left: 50%; bottom: 0; width: 70px; height: 116px; margin-left: -35px; background: var(--on-intro); border-radius: 10px 10px 0 0; }
+  .chouse.knock .cdoor { transform: perspective(400px) rotateY(-75deg); }
+  .chouse .inside h3 { font-weight: 900; text-transform: uppercase; color: var(--rose); font-size: 22px; margin-bottom: 8px; }
+  .chouse .inside .row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 2px dashed rgba(58,11,42,.2); font-size: 16px; }
+  .chouse .inside .row b { font-weight: 900; white-space: nowrap; }
+  .chouse .inside .checks { margin-top: 12px; }
+  .chouse .inside .acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+  .replay { font: inherit; font-weight: 700; font-size: 13px; text-transform: uppercase; background: none; border: 2.5px solid var(--ink); color: var(--ink); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+  .wcat { position: absolute; bottom: 0; left: -100px; width: clamp(70px, 11vw, 96px); z-index: 3; transition: left 2.3s linear, opacity .35s, transform .35s; }
+  .wcat svg { display: block; width: 100%; overflow: visible; }
+  .catscene.strut .wcat { left: calc(50% - 30px); }
+  .catscene.in .wcat { opacity: 0; transform: scale(.7) translateY(-8px); }
+  .wcat .cl { transform-box: fill-box; transform-origin: 50% 0; }
+  .catscene.strut:not(.in) .wcat .cl { animation: swingleg .3s ease-in-out infinite alternate; }
+  .catscene.strut:not(.in) .wcat .cl.b { animation-direction: alternate-reverse; }
+  .ctail { transform-box: view-box; transform-origin: 22px 40px; animation: wag .9s ease-in-out infinite alternate; }
+
+  /* ---------- NEIGHBOR HOUSES = reviews ---------- */
+  .nh { position: absolute; bottom: 9.5%; width: min(calc(24 * var(--vh)), 30vw); aspect-ratio: 4 / 5; cursor: pointer; outline: none; z-index: 1; }
+  .nh { left: var(--l); }
+  @media (max-width: 700px) { .nh { left: var(--lm, var(--l)); } }
+  .nh:hover, .nh.on { z-index: 7; }
+  .nh-roof { display: block; width: 112%; margin-left: -6%; height: 36%; overflow: visible; }
+  .nh-wall { position: relative; height: 64%; margin-top: -2px; background: var(--wall); border: 4px solid var(--ink); border-bottom: 0; }
+  .nh-win { position: absolute; left: 12%; top: 13%; width: 46%; aspect-ratio: 1; border: 4px solid var(--ink); background: #FFE7A8; overflow: hidden; box-shadow: 0 0 22px 4px rgba(255,231,168,.55); }
+  .nh-win img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.15); transition: transform .5s; }
+  .nh-win::before, .nh-win::after { content: ""; position: absolute; top: 0; bottom: 0; width: 51%; z-index: 1; transition: transform .5s cubic-bezier(.5,0,.3,1);
+    background: repeating-linear-gradient(90deg, var(--curtain) 0 6px, color-mix(in srgb, var(--curtain) 80%, #000) 6px 8px); }
+  .nh-win::before { left: 0; } .nh-win::after { right: 0; }
+  .nh:hover .nh-win::before, .nh.on .nh-win::before, .nh:focus-visible .nh-win::before { transform: translateX(-100%); }
+  .nh:hover .nh-win::after, .nh.on .nh-win::after, .nh:focus-visible .nh-win::after { transform: translateX(100%); }
+  .nh:hover .nh-win img, .nh.on .nh-win img { transform: scale(1); }
+  .nh-door { position: absolute; right: 11%; bottom: 0; width: 22%; height: 46%; background: var(--ink); border-radius: 6px 6px 0 0; }
+  .nh-ping { position: absolute; left: 50%; top: -8%; width: 30px; height: 30px; margin-left: -15px; border-radius: 50%; background: var(--cream); border: 3px solid var(--ink); display: grid; place-items: center; color: var(--rose); font-weight: 900; font-size: 15px; animation: bob 1.6s ease-in-out infinite; transition: opacity .2s; }
+  .nh:hover .nh-ping, .nh.on .nh-ping { opacity: 0; }
+  .say { position: absolute; bottom: calc(100% + 16px); left: 50%; width: min(250px, 70vw); translate: -50% 8px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 16px; padding: 12px 15px;
+    font-family: "Gochi Hand", cursive; font-size: 19px; line-height: 1.2; opacity: 0; pointer-events: none; transition: opacity .2s, translate .2s; box-shadow: 0 10px 24px rgba(0,0,0,.3); }
+  .say::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -10px; border: 10px solid transparent; border-top-color: var(--ink); }
+  .say b { display: block; margin-top: 8px; font-family: "Rubik", sans-serif; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; color: var(--rose); }
+  .nh:hover .say, .nh.on .say, .nh:focus-visible .say { opacity: 1; translate: -50% 0; }
+  .nh.r .say { left: auto; right: -8px; translate: 0 8px; } .nh.r .say::after { left: auto; right: 34px; }
+  .nh.r:hover .say, .nh.r.on .say, .nh.r:focus-visible .say { translate: 0 0; }
+  .nh.l .say { left: -8px; translate: 0 8px; } .nh.l .say::after { left: 34px; }
+  .nh.l:hover .say, .nh.l.on .say, .nh.l:focus-visible .say { translate: 0 0; }
+  .street-sign { position: absolute; left: 60%; top: calc(20 * var(--vh)); translate: -50% 0; text-align: center; z-index: 2; }
+  @media (max-width: 700px) { .street-sign { left: 50%; top: calc(16 * var(--vh)); } }
+  .street-sign h2 { font-family: "Pacifico", cursive; font-weight: 400; color: var(--mint); font-size: clamp(34px, 6vh, 56px); text-shadow: 3px 4px 0 var(--ink); line-height: 1.1; }
+  .street-sign p { display: inline-block; margin-top: 8px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 999px; padding: 6px 14px; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .street-sign .touch { display: none; }
+  @media (hover: none) { .street-sign .touch { display: inline; } .street-sign .mouse { display: none; } }
+
+  /* ---------- STOP 5: banner between the trees ---------- */
+  .banner { position: absolute; left: 50%; top: calc(41 * var(--vh)); width: min(740px, 64vw); translate: -50% 0; z-index: 2; }
+  @media (max-width: 700px) { .banner { width: 92vw; top: calc(19 * var(--vh)); } }
+  .ropes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+  .cloth { position: relative; background: var(--cream); color: var(--ink); border: 4px solid var(--ink); border-bottom: 0; padding: 14px clamp(12px, 2vw, 22px) 10px; text-align: center; }
+  .cloth::before, .cloth::after { content: ""; position: absolute; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+  .cloth::before { left: 6px; } .cloth::after { right: 6px; }
+  .scallop { position: absolute; left: -4px; right: -4px; top: 100%; height: 16px; background: radial-gradient(circle at 12px 0, var(--cream) 0 10px, var(--ink) 10px 13.5px, transparent 14px) repeat-x; background-size: 24px 16px; }
+  .cloth .tag { margin-bottom: 4px; }
+  .cloth h3 { font-family: "Pacifico", cursive; font-weight: 400; color: var(--rose); font-size: clamp(26px, 4.4vh, 40px); line-height: 1.1; margin-bottom: 12px; }
+  .faces { display: flex; justify-content: center; gap: clamp(8px, 2vw, 22px); }
+  .faces figure { width: clamp(54px, 8.5vw, 92px); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .faces img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 3px solid var(--ink); box-shadow: 0 0 0 4px var(--rose); }
+  .faces figcaption { font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  @media (max-width: 700px) { .faces figure:nth-child(5) { display: none; } }
+
+  /* ---------- phones: swipe east/west along the walk ---------- */
+  .stage { touch-action: pan-y; }
+  /* scrollable cards would otherwise reset touch-action (Chrome) and swallow sideways swipes */
+  .stage .card { touch-action: pan-y; }
+  .swipe-hint { position: absolute; right: 12px; bottom: calc(2.2 * var(--vh)); z-index: 8; display: none; align-items: center; gap: 8px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 999px; padding: 7px 13px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; box-shadow: 0 4px 0 var(--ink); transition: opacity .4s; pointer-events: none; }
+  @media (hover: none) and (pointer: coarse) { .swipe-hint { display: flex; } }
+  .swipe-hint.gone { opacity: 0; }
+  .swipe-hint .arr { display: inline-block; animation: nudge 1s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateX(-6px); } }
+  .edge-wrap { position: relative; height: 0; }
+
+  /* ---------- BOOKING FORM ---------- */
+  .book-dlg { margin: auto; width: min(560px, calc(100vw - 24px)); max-height: calc(100 * var(--vh) - 24px); padding: 0; border: 4px solid var(--ink); border-radius: 22px; background: var(--cream); color: var(--ink); box-shadow: 0 8px 0 var(--ink), 0 30px 80px rgba(0,0,0,.4); overflow: auto; }
+  .book-dlg::backdrop { background: rgba(42,11,38,.6); backdrop-filter: blur(3px); }
+  .book-dlg[open] { animation: popin .25s cubic-bezier(.3,1.4,.5,1); }
+  @keyframes popin { from { transform: translateY(16px) scale(.96); opacity: 0; } }
+  .book-dlg form, .book-done { padding: clamp(20px, 4vw, 30px); }
+  .book-x { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--ink); background: var(--cream); color: var(--ink); font: 900 18px "Rubik"; cursor: pointer; line-height: 1; }
+  .book-dlg h2 { font-weight: 900; text-transform: uppercase; font-size: clamp(30px, 6vw, 42px); line-height: .95; color: var(--rose); padding-right: 40px; }
+  .book-dlg h2 .s { font-family: "Pacifico", cursive; text-transform: none; font-weight: 400; color: var(--mist-deep); font-size: .85em; }
+  .book-dlg .lede { margin: 8px 0 18px; font-size: 15px; line-height: 1.45; }
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .fgrid .full { grid-column: 1 / -1; }
+  @media (max-width: 520px) { .fgrid { grid-template-columns: 1fr; } }
+  .fld label, .fld legend { display: block; font-weight: 900; text-transform: uppercase; font-size: 12px; letter-spacing: .05em; margin-bottom: 6px; }
+  .fld label i { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .7; }
+  .fld input, .fld textarea, .fld select { width: 100%; font: 500 16px "Rubik", sans-serif; color: var(--ink); background: #fff; border: 3px solid var(--ink); border-radius: 12px; padding: 10px 12px; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .fld textarea { min-height: 84px; resize: vertical; }
+  .fld input:focus, .fld textarea:focus, .fld select:focus { border-color: var(--rose); box-shadow: 0 0 0 4px rgba(238,61,164,.2); }
+  .fld input:user-invalid { border-color: #D93A3A; }
+  fieldset.fld { border: 0; min-width: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips input { position: absolute; opacity: 0; pointer-events: none; }
+  .chips span { display: inline-block; padding: 8px 13px; border: 3px solid var(--ink); border-radius: 999px; background: #fff; font-weight: 700; font-size: 14px; cursor: pointer; user-select: none; transition: background .15s, color .15s; }
+  .chips input:checked + span { background: var(--ink); color: var(--mint); }
+  .chips input:focus-visible + span { box-shadow: 0 0 0 4px rgba(238,61,164,.35); }
+  .hp { position: absolute; left: -9999px; }
+  .book-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+  .book-actions .pill { border: 0; cursor: pointer; font-family: inherit; font-size: 15px; padding: 13px 26px; }
+  .book-actions .pill[disabled] { opacity: .6; cursor: wait; }
+  .book-err { color: #B3261E; font-weight: 700; font-size: 14px; }
+  .book-done { text-align: center; padding-top: 34px; }
+  .book-done .big { font-size: 54px; line-height: 1; }
+  .book-done p { margin: 10px auto 20px; max-width: 380px; line-height: 1.45; }
+
+  .info-dlg .ibody { padding: clamp(20px, 4vw, 30px); }
+  .info-dlg .irow { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 9px 0; border-bottom: 2px dashed rgba(58,11,42,.2); }
+  .info-dlg .irow b { font-weight: 900; font-size: 17px; }
+  .info-dlg .irow span { font-weight: 700; font-size: 16px; }
+  .info-dlg .irow small { grid-column: 1 / -1; font-size: 14px; line-height: 1.4; opacity: .75; margin-top: 2px; }
+  .info-dlg h3 { font-weight: 900; text-transform: uppercase; font-size: 13px; letter-spacing: .06em; color: var(--mist-deep); margin: 18px 0 8px; }
+  .info-dlg .checks li { font-size: 15px; }
+  .info-dlg .iweek { display: grid; grid-template-columns: 54px repeat(7, 1fr); gap: 4px; text-align: center; font-size: 12px; font-weight: 700; }
+  .info-dlg .iweek b { font-weight: 900; text-transform: uppercase; font-size: 11px; }
+  .info-dlg .iweek .t { text-align: left; font-size: 11px; text-transform: uppercase; opacity: .7; align-self: center; }
+  .info-dlg .iweek i { height: 22px; border-radius: 6px; border: 2px solid var(--ink); }
+  .info-dlg .iweek i.o { background: var(--mint); } .info-dlg .iweek i.x { background: repeating-linear-gradient(45deg, transparent 0 3px, rgba(58,11,42,.35) 3px 5px); } .info-dlg .iweek i.n { border-style: dashed; opacity: .35; }
+  .info-dlg .ikey { display: flex; gap: 14px; font-size: 12px; margin-top: 8px; }
+  .info-dlg .ikey span::before { content: ""; display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 3px; margin-right: 5px; vertical-align: -2px; }
+  .info-dlg .ikey .ko::before { background: var(--mint); } .info-dlg .ikey .kx::before { background: repeating-linear-gradient(45deg, transparent 0 2px, rgba(58,11,42,.4) 2px 3px); }
+  .info-dlg .book-actions .pill { font-size: 15px; }
+  .treat-note { margin: 14px 0 0; padding: 10px 13px; background: #FFF4C9; border: 2.5px dashed var(--ink); border-radius: 14px; font-size: 14px; line-height: 1.45; }
+  .fld .treat-note { margin: 0 0 8px; font-size: 13.5px; }
+
   @media (prefers-reduced-motion: reduce) {
+    .book-dlg[open] { animation: none; }
+    .walk-track, .banner, .nh-ping, .swipe-hint .arr { animation: none !important; }
+    .walker.twin { display: none; }
+    .intro-fly { display: none; }
+    .walker { left: 50%; translate: -50% 0; }
     .pawtrail svg { animation: none; opacity: 1; }
-    .leaf, .fly, .daisy-dec, .pols figure, .duck, .dog .tail { animation: none !important; }
+    .leaf, .fly, .daisy-dec, .duck, .dog .tail, .walker *, .wcat *, .ctail { animation: none !important; }
     .leaf, .fly { display: none; }
   }
 </style>
@@ -265,8 +467,8 @@
 <body>
 
 <nav class="nav">
-  <a class="brand" href="#top" onclick="scrollTo({top:0});return false">Ella's</a>
-  <div class="nav-r"><a class="skip" href="#walk">Take the walk ↓</a><a class="pill" href="mailto:hello@ellamichaels.com">Book a walk</a></div>
+  <a class="brand" href="#top" aria-label="Ella's Dog Walks, back to the top" onclick="scrollTo({top:0});return false"><span class="bface me"><img data-photo="ella" alt=""></span><span class="bface pup"><img data-photo="monroe" alt=""></span><span class="bheart" aria-hidden="true">♥</span></a>
+  <div class="nav-r"><a class="skip" href="#walk" id="navGo">Take the walk ↓</a><a class="pill" href="mailto:hello@ellamichaels.com" data-book>Book a walk</a></div>
 </nav>
 
 <!-- ============ INTRO + QUICK INFO ============ -->
@@ -274,15 +476,118 @@
   <div class="intro-inner">
     <h1 class="logo"><span class="script">Ella's</span><span class="block">Dog Walks</span></h1>
     <div class="menu" id="quick">
-      <div><h3>Walks</h3><ul><li>30 min · $25</li><li>45 min · $32</li><li>60 min · $40</li></ul></div>
-      <div><h3>Drop-ins</h3><ul><li>Potty break · $18</li><li>Puppy visit · $22</li><li>Feed + play · $25</li></ul></div>
-      <div><h3>Availability</h3><ul><li>Mon–Fri · 7am–7pm</li><li>Weekends · mornings &amp; midday</li><li>Free meet &amp; greet</li></ul></div>
+      <div class="mcard" data-info="walks" role="button" tabindex="0" aria-haspopup="dialog">
+        <h3>Walks</h3><ul><li>30 min · $25</li><li>45 min · $32</li><li>60 min · $40</li></ul>
+        <span class="more">Details <i>→</i></span>
+      </div>
+      <div class="mcard" data-info="dropins" role="button" tabindex="0" aria-haspopup="dialog">
+        <h3>Drop-ins</h3><ul><li>Potty break · $18</li><li>Puppy visit · $25</li><li>Feed, play + potty · $30</li></ul>
+        <span class="more">What's included <i>→</i></span>
+      </div>
+      <div class="mcard" data-info="availability" role="button" tabindex="0" aria-haspopup="dialog">
+        <h3>Availability</h3><ul><li>Mon–Fri · 7am–7pm</li><li>Weekends · AM &amp; midday</li><li>Free meet &amp; greet</li></ul>
+        <span class="more">See this week <i>→</i></span>
+      </div>
     </div>
-    <div class="center"><a class="pill" href="mailto:hello@ellamichaels.com">Book a walk · hello@ellamichaels.com</a></div>
-    <a class="go" href="#walk"><span>Or come along on a walk</span><span class="pawtrail"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg></span></a>
+    <div class="center"><a class="pill" href="mailto:hello@ellamichaels.com" data-book>Book a walk · hello@ellamichaels.com</a></div>
+    <a class="go" href="#choose"><span>Pick your pup</span><span class="pawtrail"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg></span></a>
   </div>
-  <svg class="grass-edge" viewBox="0 0 1440 50" preserveAspectRatio="none" id="edge"></svg>
+  <div class="stroll" aria-hidden="true">
+    <div class="intro-fly"><svg viewBox="0 0 30 24"><ellipse cx="9" cy="9" rx="8" ry="7" fill="#EE3DA4" stroke="#2A0B26" stroke-width="2"/><ellipse cx="21" cy="9" rx="8" ry="7" fill="#EE3DA4" stroke="#2A0B26" stroke-width="2"/><ellipse cx="10" cy="18" rx="5" ry="4" fill="#FFCF5C" stroke="#2A0B26" stroke-width="2"/><ellipse cx="20" cy="18" rx="5" ry="4" fill="#FFCF5C" stroke="#2A0B26" stroke-width="2"/><rect x="14" y="4" width="2" height="18" rx="1" fill="#2A0B26"/></svg></div>
+    <div class="ground"></div>
+    <div class="walk-track" id="walkTrack">
+    <div class="walker">
+      <svg viewBox="0 0 336 220">
+        <defs>
+          <clipPath id="ellaHead"><circle cx="60" cy="46" r="34"/></clipPath>
+          <clipPath id="monroeHead"><rect x="248" y="66" width="86" height="63" rx="20"/></clipPath>
+        </defs>
+        <!-- Monroe: the big dog's body in tan with a loaf-shaped photo head -->
+        <g class="bod" stroke="#2A0B26" stroke-linejoin="round">
+          <path d="M244 150 L 258 124 L 282 126 L 266 154 Z" fill="#E8B07A" stroke-width="3.5"/>
+          <rect x="246" y="135" width="32" height="9" rx="4.5" fill="#EE3DA4" stroke-width="2.5" transform="rotate(29 262 139.5)"/>
+          <circle cx="258" cy="133" r="3.6" fill="none" stroke-width="2.2"/>
+          <g transform="translate(142 93) scale(1.25)" fill="#E8B07A" stroke-width="3">
+            <rect class="mleg b" x="40" y="58" width="10" height="32" rx="5" fill="#C98A4B"/>
+            <rect class="mleg" x="86" y="58" width="10" height="32" rx="5" fill="#C98A4B"/>
+            <path class="mtail" d="M28 50 Q 12 40 14 22" fill="none" stroke="#C98A4B" stroke-width="8" stroke-linecap="round"/>
+            <ellipse cx="62" cy="54" rx="38" ry="19"/>
+            <rect class="mleg" x="30" y="60" width="11" height="32" rx="5.5"/>
+            <rect class="mleg b" x="76" y="60" width="11" height="32" rx="5.5"/>
+          </g>
+          <path d="M266 143 l 1 5" stroke-width="2"/>
+          <circle cx="267.5" cy="152" r="5" fill="#FFCF5C" stroke-width="2"/>
+          <rect x="248" y="66" width="86" height="63" rx="20" fill="#FFF1E0" stroke="none"/>
+          <image data-photo="monroe" x="248" y="66" width="86" height="63" preserveAspectRatio="xMidYMid slice" clip-path="url(#monroeHead)"/>
+          <rect x="248" y="66" width="86" height="63" rx="20" fill="none" stroke-width="3"/>
+        </g>
+        <!-- leash from Ella's hand to Monroe's collar -->
+        <path d="M100 128 Q 180 110 258 131" fill="none" stroke="#EE3DA4" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Ella: stick figure with a photo head -->
+        <g class="bod">
+          <path class="hair" d="M20 50 C 12 -6, 108 -6, 100 50 C 102 76, 103 100, 99 122 C 93 128, 85 127, 80 122 C 75 128, 66 129, 61 124 L 59 124 C 54 129, 45 128, 40 122 C 35 127, 27 128, 21 122 C 17 100, 18 76, 20 50 Z" fill="#4E2219" stroke="#2A0B26" stroke-width="3" stroke-linejoin="round"/>
+          <line class="eleg" x1="60" y1="150" x2="60" y2="208" stroke="#2A0B26" stroke-width="7" stroke-linecap="round"/>
+          <line class="eleg b" x1="60" y1="150" x2="60" y2="208" stroke="#2A0B26" stroke-width="7" stroke-linecap="round"/>
+          <line class="earm" x1="60" y1="100" x2="30" y2="134" stroke="#2A0B26" stroke-width="7" stroke-linecap="round"/>
+          <polygon points="60,92 36,152 84,152" fill="#EE3DA4" stroke="#2A0B26" stroke-width="4" stroke-linejoin="round"/>
+          <line x1="60" y1="100" x2="100" y2="128" stroke="#2A0B26" stroke-width="7" stroke-linecap="round"/>
+          <line x1="60" y1="78" x2="60" y2="94" stroke="#2A0B26" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="60" cy="46" r="34" fill="#FFF1E0"/>
+          <image data-photo="ella" x="26" y="12" width="68" height="68" preserveAspectRatio="xMidYMid slice" clip-path="url(#ellaHead)"/>
+          <circle cx="60" cy="46" r="34" fill="none" stroke="#2A0B26" stroke-width="3"/>
+        </g>
+      </svg>
+    </div>
+    </div>
+  </div>
 </header>
+
+<!-- ============ CHOOSE YOUR DOG ============ -->
+<section class="choose" id="choose">
+  <h2>Choose your <span class="s">dog!</span></h2>
+  <p class="sub">Big, medium or small, they all get the same walk. Pick one and they'll come along for the walk below.</p>
+  <div class="picks" id="picks">
+    <button class="pick" data-breed="big" aria-pressed="false"><span class="art"></span><b>Big</b><small>Labs, shepherds &amp; big goofballs</small></button>
+    <button class="pick" data-breed="medium" aria-pressed="false"><span class="art"></span><b>Medium</b><small>Doodles, beagles &amp; friends</small></button>
+    <button class="pick" data-breed="small" aria-pressed="false"><span class="art"></span><b>Small</b><small>Pocket-sized pups</small></button>
+    <button class="pick" data-breed="cat" aria-pressed="false"><span class="art"></span><b>Cat</b><small class="cat-hint">Wait, cats too?</small></button>
+  </div>
+  <a class="go" href="#walk" id="chooseGo"><span>Let's go for a walk</span><span class="pawtrail"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg><svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg></span></a>
+</section>
+
+<!-- ============ CATS TOO (shown after picking the cat) ============ -->
+<section class="cats" id="cats" aria-live="polite">
+  <h2>Cats <span class="s">too!</span></h2>
+  <p class="sub">No leash required. I'll pop in, feed, scoop and play while you're away.</p>
+  <div class="catscene" id="catscene">
+    <div class="chouse" id="chouse">
+      <svg class="roof" viewBox="0 0 540 120" preserveAspectRatio="none"><polygon points="6,117 270,5 534,117" fill="#EE3DA4" stroke="#2A0B26" stroke-width="6" stroke-linejoin="round"/></svg>
+      <div class="walls">
+        <div class="inside">
+          <h3>Cat visits</h3>
+          <div class="row"><span>Drop-in visit · 30 min</span><b>$20</b></div>
+          <div class="row"><span>Twice a day</span><b>$35 / day</b></div>
+          <div class="row"><span>Bedtime check-in</span><b>$15</b></div>
+          <ul class="checks">
+            <li>Fresh food &amp; water</li>
+            <li>Litter scooped, every visit</li>
+            <li>Playtime &amp; chin scratches (if they allow it)</li>
+            <li>A photo update so you know they're fine</li>
+          </ul>
+          <div class="acts"><a class="pill" href="mailto:hello@ellamichaels.com?subject=Cat%20visits" data-book="cat">Book cat visits</a><button class="replay" id="catReplay">↻ Watch again</button></div>
+        </div>
+        <div class="front">
+          <div class="cwin l"></div><div class="cwin r"></div>
+          <div class="doorway"></div><div class="cdoor"></div>
+        </div>
+      </div>
+    </div>
+    <div class="wcat" id="wcat"></div>
+    <div class="floor"></div>
+  </div>
+</section>
+
+<div class="edge-wrap" id="edgeWrap"><svg class="grass-edge" viewBox="0 0 1440 50" preserveAspectRatio="none" id="edge"></svg></div>
 
 <!-- ============ THE WALK ============ -->
 <section class="walk" id="walk" style="--stops: 7">
@@ -306,7 +611,7 @@
           <span class="tag">Stop 1 · Pickup</span>
           <h2>Hi, I'm <span class="s">Ella</span></h2>
           <div class="about-grid">
-            <img src="https://placedog.net/300/300?id=41" alt="Ella">
+            <img data-photo="ella" alt="Ella">
             <p>I let myself in, top up the water bowl, and clip on the leash. Every pup gets my full attention and a photo update when we're back. Insured &amp; Pet CPR certified.</p>
           </div>
         </div>
@@ -324,7 +629,7 @@
           <div class="row"><span>60 min adventure</span><b>$40</b></div>
           <h3>Drop-ins</h3>
           <div class="row"><span>Potty break</span><b>$18</b></div>
-          <div class="row"><span>Puppy visit / feed + play</span><b>$22–25</b></div>
+          <div class="row"><span>Puppy visit / feed, play + potty</span><b>$25–30</b></div>
           <h3>Extras</h3>
           <div class="row"><span>2nd dog · weekend</span><b>+$10 · +$5</b></div>
         </div>
@@ -339,10 +644,10 @@
           <h2>Every walk <span class="s">includes</span></h2>
           <ul class="checks">
             <li>As many sniff breaks as needed</li>
-            <li>Fresh water &amp; a towel-off after</li>
-            <li>A photo update, every single visit</li>
-            <li>Leash-pullers &amp; shy pups welcome</li>
-            <li>Free meet &amp; greet first</li>
+            <li>Pics at pickup, mid-walk &amp; drop-off</li>
+            <li>Potty updates + a little walk recap</li>
+            <li>Dog park trips on request</li>
+            <li>Chicken treats &amp; a (big-dog-safe) squeaky ball</li>
           </ul>
         </div>
       </div>
@@ -357,7 +662,7 @@
           <h2>This <span class="s">week</span></h2>
           <div class="week" id="week"></div>
           <div class="key"><span class="ko">Open</span><span class="kx">Booked</span></div>
-          <div class="times">Morning 7–10 · Midday 11–2 · Evening 4–7</div>
+          <div class="times">Exact times vary a little; I'll confirm yours</div>
         </div>
       </div>
 
@@ -368,28 +673,30 @@
         <svg class="duck" style="left:46vw" viewBox="0 0 50 36"><ellipse cx="22" cy="24" rx="18" ry="10" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><circle cx="36" cy="12" r="8" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><path d="M43 12 l7 2 l-7 3z" stroke-width="2" style="fill:var(--sun);stroke:var(--ink)"/><circle cx="37" cy="10" r="1.6" style="fill:var(--ink)"/></svg>
         <svg class="duck" style="left:62vw;animation-delay:-1s" viewBox="0 0 50 36"><ellipse cx="22" cy="24" rx="18" ry="10" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><circle cx="36" cy="12" r="8" stroke-width="3" style="fill:var(--cream);stroke:var(--ink)"/><path d="M43 12 l7 2 l-7 3z" stroke-width="2" style="fill:var(--sun);stroke:var(--ink)"/><circle cx="37" cy="10" r="1.6" style="fill:var(--ink)"/></svg>
         <svg class="obj bigtree" style="left:86vw" viewBox="0 0 200 300"><rect x="88" y="150" width="24" height="150" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--tree-a);stroke:var(--ink)"><circle cx="100" cy="100" r="70"/><circle cx="50" cy="140" r="44"/><circle cx="152" cy="138" r="46"/></g></svg>
-        <div class="card string" style="--cx:50vw">
-          <div class="line"></div>
-          <div class="heading"><span>Stop 5 · Friends we see every day</span></div>
-          <div class="pols">
-            <figure><img src="https://placedog.net/300/300?id=5" alt=""><figcaption>Biscuit</figcaption></figure>
-            <figure><img src="https://placedog.net/300/300?id=8" alt=""><figcaption>Mochi</figcaption></figure>
-            <figure><img src="https://placedog.net/300/300?id=19" alt=""><figcaption>Pepper</figcaption></figure>
-            <figure><img src="https://placedog.net/300/300?id=33" alt=""><figcaption>Lulu</figcaption></figure>
-            <figure><img src="https://placedog.net/300/300?id=37" alt=""><figcaption>Rocco</figcaption></figure>
+        <svg class="ropes" id="ropes" aria-hidden="true"></svg>
+        <div class="banner">
+          <div class="cloth">
+            <span class="tag">Stop 5 · The regulars</span>
+            <h3>Friends we walk every week</h3>
+            <div class="faces">
+              <figure><img data-photo="biscuit" alt="Biscuit"><figcaption>Biscuit</figcaption></figure>
+              <figure><img data-photo="mochi" alt="Mochi"><figcaption>Mochi</figcaption></figure>
+              <figure><img data-photo="pepper" alt="Pepper"><figcaption>Pepper</figcaption></figure>
+              <figure><img data-photo="lulu" alt="Lulu"><figcaption>Lulu</figcaption></figure>
+              <figure><img data-photo="rocco" alt="Rocco"><figcaption>Rocco</figcaption></figure>
+            </div>
+            <span class="scallop"></span>
           </div>
         </div>
       </div>
 
-      <!-- STOP 6 — squirrel + chalkboard reviews -->
-      <div class="stop" data-name="Squirrel!" data-dog="excited" data-say="SQUIRREL!!!">
+      <!-- STOP 6 — squirrel + the neighbors (houses are the reviews) -->
+      <div class="stop" data-name="Neighbors" data-dog="excited" data-say="SQUIRREL!!!">
         <svg class="obj bigtree" style="left:calc(var(--dogx) + var(--dogw) + 2vw)" viewBox="0 0 200 300"><rect x="86" y="130" width="28" height="170" fill="#7A4E2D"/><g stroke-width="4" style="fill:var(--coral);stroke:var(--ink)"><circle cx="100" cy="90" r="66"/><circle cx="54" cy="130" r="40"/><circle cx="148" cy="128" r="42"/></g><g style="fill:var(--sun)"><circle cx="76" cy="70" r="6"/><circle cx="126" cy="96" r="6"/></g></svg>
         <svg class="squirrel" style="left:calc(var(--dogx) + var(--dogw) + 2vw + 6vh);bottom:10%" viewBox="0 0 50 50"><path d="M14 40 C -4 36, 0 6, 16 10 C 8 18, 12 30, 20 34z" fill="#B97842" stroke-width="2.5" style="stroke:var(--ink)"/><ellipse cx="28" cy="36" rx="12" ry="10" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/><circle cx="38" cy="26" r="7" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/><circle cx="40" cy="25" r="1.5" style="fill:var(--ink)"/><path d="M35 19 l2 -5 l3 5z" fill="#C98A4B" stroke-width="2" style="stroke:var(--ink)"/></svg>
-        <div class="card chalk" style="--cx:62vw">
+        <div class="street-sign">
           <h2>Neighbors say…</h2>
-          <div class="q" id="chalkq"></div>
-          <div class="who" id="chalkw"></div>
-          <div class="dots" id="chalkd"></div>
+          <p><span class="mouse">Hover over a house ↓</span><span class="touch">Tap a house ↓</span></p>
         </div>
       </div>
 
@@ -401,7 +708,7 @@
           <h2>Walk <span class="s">complete!</span></h2>
           <div class="stats"><div>1.2<small>miles</small></div><div>23<small>sniffs</small></div><div>1<small>squirrel</small></div><div>∞<small>tail wags</small></div></div>
           <p style="margin-bottom:16px">Want this for your pup? Tell me about them and I'll set up a free meet &amp; greet.</p>
-          <a class="pill" href="mailto:hello@ellamichaels.com">Book a walk</a>
+          <a class="pill" href="mailto:hello@ellamichaels.com" data-book>Book a walk</a>
         </div>
       </div>
     </div>
@@ -410,28 +717,121 @@
       <div class="bubble" id="bubble"></div>
       <svg class="dog" viewBox="0 0 134 100" aria-label="A happy dog walking">
         <g class="bodyg">
-          <rect class="leg l2" x="40" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/>
-          <rect class="leg l4" x="86" y="58" width="10" height="32" rx="5" fill="#C98A4B" stroke-width="2.5" style="stroke:var(--ink)"/>
-          <path class="tail" d="M28 50 Q 12 40 14 22" stroke="#C98A4B" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <ellipse cx="62" cy="54" rx="38" ry="19" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
-          <rect class="leg l1" x="30" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
-          <rect class="leg l3" x="76" y="60" width="11" height="32" rx="5.5" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
+          <rect class="leg l2" x="40" y="58" width="10" height="32" rx="5" stroke-width="2.5" style="fill:var(--fur-dark);stroke:var(--ink)"/>
+          <rect class="leg l4" x="86" y="58" width="10" height="32" rx="5" stroke-width="2.5" style="fill:var(--fur-dark);stroke:var(--ink)"/>
+          <path class="tail" d="M28 50 Q 12 40 14 22" stroke-width="8" fill="none" stroke-linecap="round" style="stroke:var(--fur-dark)"/>
+          <ellipse cx="62" cy="54" rx="38" ry="19" stroke-width="3" style="fill:var(--fur);stroke:var(--ink)"/>
+          <rect class="leg l1" x="30" y="60" width="11" height="32" rx="5.5" stroke-width="3" style="fill:var(--fur);stroke:var(--ink)"/>
+          <rect class="leg l3" x="76" y="60" width="11" height="32" rx="5.5" stroke-width="3" style="fill:var(--fur);stroke:var(--ink)"/>
           <rect x="88" y="36" width="8" height="20" rx="3" stroke-width="2" transform="rotate(-18 92 46)" style="fill:var(--rose);stroke:var(--ink)"/>
           <g class="head">
-            <ellipse cx="106" cy="34" rx="17" ry="15" fill="#E8B07A" stroke-width="3" style="stroke:var(--ink)"/>
-            <ellipse cx="121" cy="41" rx="11" ry="7.5" fill="#F2CFA4" stroke-width="3" style="stroke:var(--ink)"/>
+            <path class="ear-pointy" d="M97 24 L101 4 L112 20 Z" stroke-width="2.5" stroke-linejoin="round" style="fill:var(--ear);stroke:var(--ink)"/>
+            <ellipse cx="106" cy="34" rx="17" ry="15" stroke-width="3" style="fill:var(--fur);stroke:var(--ink)"/>
+            <ellipse cx="121" cy="41" rx="11" ry="7.5" stroke-width="3" style="fill:var(--snout);stroke:var(--ink)"/>
             <path class="tongue" d="M116 47 q 3 11 8 0z" stroke-width="2" style="fill:var(--rose);stroke:var(--ink)"/>
             <circle cx="130" cy="38" r="4" style="fill:var(--ink)"/>
             <circle cx="110" cy="29" r="2.8" style="fill:var(--ink)"/>
-            <path d="M98 21 C 86 21, 84 42, 92 50 C 99 45, 104 32, 98 21Z" fill="#B97842" stroke-width="2.5" style="stroke:var(--ink)"/>
+            <path class="ear-floppy" d="M98 21 C 86 21, 84 42, 92 50 C 99 45, 104 32, 98 21Z" stroke-width="2.5" style="fill:var(--ear);stroke:var(--ink)"/>
           </g>
         </g>
       </svg>
     </div>
+    <div class="swipe-hint" id="swipeHint"><span class="arr">←</span> Swipe to walk</div>
   </div>
 </section>
 
+<!-- booking form -->
+<dialog class="book-dlg" id="bookDlg" aria-labelledby="bookTitle">
+  <button class="book-x" type="button" id="bookX" aria-label="Close">✕</button>
+  <form id="bookForm" novalidate>
+    <h2 id="bookTitle">Book a <span class="s">walk</span></h2>
+    <p class="lede">Tell me a little about your pup and when you need help. I'll get back to you within a day to set up a free meet &amp; greet.</p>
+    <div class="fgrid">
+      <div class="fld"><label for="bName">Your name</label><input id="bName" name="name" autocomplete="name" required></div>
+      <div class="fld"><label for="bEmail">Email</label><input id="bEmail" name="email" type="email" autocomplete="email" required></div>
+      <div class="fld"><label for="bPhone">Phone <i>(optional)</i></label><input id="bPhone" name="phone" type="tel" autocomplete="tel"></div>
+      <div class="fld"><label for="bPet">Pet's name</label><input id="bPet" name="pet_name" required></div>
+      <fieldset class="fld full"><legend>Who's this for?</legend>
+        <div class="chips">
+          <label><input type="radio" name="pet_size" value="Big dog"><span>Big dog</span></label>
+          <label><input type="radio" name="pet_size" value="Medium dog"><span>Medium dog</span></label>
+          <label><input type="radio" name="pet_size" value="Small dog"><span>Small dog</span></label>
+          <label><input type="radio" name="pet_size" value="Cat"><span>Cat</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="fld full"><legend>What do you need?</legend>
+        <div class="chips" id="bServices">
+          <label><input type="checkbox" name="service" value="30 min walk"><span>30 min walk</span></label>
+          <label><input type="checkbox" name="service" value="45 min walk"><span>45 min walk</span></label>
+          <label><input type="checkbox" name="service" value="60 min adventure"><span>60 min adventure</span></label>
+          <label><input type="checkbox" name="service" value="Drop-in visit"><span>Drop-in</span></label>
+          <label><input type="checkbox" name="service" value="Cat visits"><span>Cat visits</span></label>
+        </div>
+      </fieldset>
+      <div class="fld full"><label for="bWhen">When? <i>(days, times, how often)</i></label><input id="bWhen" name="when" placeholder="e.g. weekdays around noon, starting next week"></div>
+      <div class="fld full"><label for="bAllergy">Treat check! Any allergies or no-gos?</label><p class="treat-note">I always carry <b>chicken treats</b> and a <b>squeaky ball</b> (big enough that big pups can’t choke on it). Let me know about any allergies or things your dog doesn’t love!</p><input id="bAllergy" name="allergies" required placeholder="e.g. no chicken, scared of squeakers, or “all good!”"></div>
+      <div class="fld full"><label for="bNotes">Anything else I should know? <i>(optional)</i></label><textarea id="bNotes" name="notes" placeholder="Breed, age, leash manners, shy with strangers, favorite treats…"></textarea></div>
+      <input class="hp" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </div>
+    <div class="book-actions">
+      <button class="pill" type="submit" id="bSend">Send request</button>
+      <span class="book-err" id="bErr" role="alert"></span>
+    </div>
+  </form>
+  <div class="book-done" id="bookDone" hidden>
+    <div class="big">🐾</div>
+    <h2>Got <span class="s">it!</span></h2>
+    <p id="bookDoneMsg">Thanks! I'll be in touch within a day to set up a meet &amp; greet.</p>
+    <button class="pill" type="button" id="bookDoneX" style="border:0;cursor:pointer;font-family:inherit">Back to the walk</button>
+  </div>
+</dialog>
 
+<!-- details pop-up for the landing cards -->
+<dialog class="book-dlg info-dlg" id="infoDlg" aria-labelledby="infoTitle">
+  <button class="book-x" type="button" id="infoX" aria-label="Close">✕</button>
+  <div class="ibody" id="infoBody"></div>
+</dialog>
+<template id="info-walks">
+  <h2 id="infoTitle">The <span class="s">walks</span></h2>
+  <p class="lede">Your pup, me, and a whole lot of sniffing. Every walk is all about them!</p>
+  <div class="irow"><span>30 min walk</span><b>$25</b><small>A good sniff around the block. Perfect for a midday break.</small></div>
+  <div class="irow"><span>45 min walk</span><b>$32</b><small>Enough time to swing by the park.</small></div>
+  <div class="irow"><span>60 min adventure</span><b>$40</b><small>The long loop with extra park time, for high-energy pups.</small></div>
+  <h3>Every walk comes with</h3>
+  <ul class="checks">
+    <li>Pics at pickup, mid-walk <i>and</i> drop-off, so you never miss a tail wag</li>
+    <li>Potty updates (yes, all of them)</li>
+    <li>A little recap of how the whole walk went</li>
+    <li>Dog park trips, just ask!</li>
+  </ul>
+  <p class="treat-note">I always carry <b>chicken treats</b> and a <b>squeaky ball</b> (big enough that big pups can’t choke on it). Let me know about any allergies or things your dog doesn’t love!</p>
+  <h3>Extras</h3>
+  <div class="irow"><span>2nd dog, same household</span><b>+$10</b></div>
+  <div class="irow"><span>Weekends &amp; holidays</span><b>+$5</b></div>
+  <div class="irow"><span>Travel fee, if you're 30+ min away</span><b>up to +$5</b></div>
+  <div class="book-actions"><button class="pill" type="button" data-info-book="">Book a walk</button></div>
+</template>
+<template id="info-dropins">
+  <h2 id="infoTitle">Drop-<span class="s">ins</span></h2>
+  <p class="lede">Shorter visits for when your pup needs a break or some company, not a full walk.</p>
+  <div class="irow"><span>Potty break · 15 min</span><b>$18</b><small>A true potty break: one lap around the block, then back to the couch.</small></div>
+  <div class="irow"><span>Puppy visit · 30 min</span><b>$25</b><small>30 minutes of play plus a potty break. Dogs of all sizes and ages are welcome!</small></div>
+  <div class="irow"><span>Feed, play + potty · 30 min</span><b>$30</b><small>Dinner is served! Then 30 minutes of play and a potty break.</small></div>
+  <h3>Every drop-in comes with</h3>
+  <ul class="checks"><li>At least one picture (more if you ask, I'm happy to!)</li><li>Fresh water, topped up</li></ul>
+  <h3>Great for</h3>
+  <ul class="checks"><li>Puppies &amp; seniors</li><li>Long workdays</li><li>Dogs who are on meds or a set feeding schedule</li></ul>
+  <div class="book-actions"><button class="pill" type="button" data-info-book="Drop-in visit">Book a drop-in</button></div>
+</template>
+<template id="info-availability">
+  <h2 id="infoTitle">This <span class="s">week</span></h2>
+  <p class="lede">Here's what's open this week! Morning, midday and evening times shift a little day to day, so I'll confirm the exact time with you.</p>
+  <div class="iweek" id="infoWeek"></div>
+  <div class="ikey"><span class="ko">Open</span><span class="kx">Booked</span></div>
+  <h3>Good to know</h3>
+  <ul class="checks"><li>A free meet &amp; greet comes first, always</li><li>Book a day ahead when you can. Same-day if I've got a slot.</li><li>Regular weekly spots are held for you</li><li>Holidays +$5</li><li>If you're more than 30 minutes away, a travel fee of up to $5 may apply</li></ul>
+  <div class="book-actions"><button class="pill" type="button" data-info-book="">Request a time</button></div>
+</template>
 
 <!-- trail meter -->
 <div class="meter" id="meter" aria-hidden="true">
@@ -442,6 +842,28 @@
 </div>
 
 <script>
+  // ---------- PHOTOS ----------
+  // Put real photos in an assets/ folder and add their paths here, e.g. ella: 'assets/ella-face.jpg'.
+  // Anything left blank shows a placeholder.
+  const PHOTOS = {
+    ella: 'assets/ella-face.jpg',     // Ella's face, for the stick figure + the "Hi, I'm Ella" stop (square crop works best)
+    monroe: 'assets/monroe.jpg',   // Monroe, for the title page (a cut-out PNG looks best)
+    biscuit: '', mochi: '', duke: '', olive: '', pepper: '', lulu: '', rocco: '',
+  };
+  const PLACEHOLDER_DOGS = { monroe: 3, biscuit: 5, mochi: 8, duke: 14, olive: 22, pepper: 19, lulu: 33, rocco: 37 };
+  const FACE_PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FFD9C2"/><path d="M6 56 C 4 6, 96 6, 94 56 C 86 28, 14 28, 6 56Z" fill="#6B3A26"/><circle cx="36" cy="56" r="5" fill="#2A0B26"/><circle cx="64" cy="56" r="5" fill="#2A0B26"/><path d="M36 72 Q 50 84 64 72" stroke="#2A0B26" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="25" cy="68" r="7" fill="#EE3DA4" opacity=".35"/><circle cx="75" cy="68" r="7" fill="#EE3DA4" opacity=".35"/></svg>');
+  const photoFor = key => PHOTOS[key] || (key === 'ella' ? FACE_PLACEHOLDER : `https://placedog.net/400/400?id=${PLACEHOLDER_DOGS[key]}`);
+  const applyPhotos = () => document.querySelectorAll('[data-photo]').forEach(el => {
+    const src = photoFor(el.dataset.photo);
+    el.tagName.toLowerCase() === 'image' ? el.setAttribute('href', src) : el.src = src;
+  });
+
+  (() => {
+    const track = document.getElementById('walkTrack'), twin = track.querySelector('.walker').cloneNode(true);
+    twin.classList.add('twin'); twin.querySelector('defs')?.remove();
+    track.appendChild(twin);
+  })();
+
   const nav = document.querySelector('.nav');
   const walk = document.getElementById('walk'), stage = document.getElementById('stage'), world = document.getElementById('world');
   const stops = [...world.querySelectorAll('.stop')], N = stops.length;
@@ -461,21 +883,31 @@
   })();
 
   // availability board (placeholder data)
-  const week = { Mon: 'oxo', Tue: 'xoo', Wed: 'oox', Thu: 'oxo', Fri: 'ooo', Sat: 'oxn', Sun: 'xon' };
+  // this week: o = open, x = booked / not available, n = not walking.  [morning, midday, evening]
+  const week = { Mon: 'oxo', Tue: 'oox', Wed: 'ooo', Thu: 'xxo', Fri: 'ooo', Sat: 'xxx', Sun: 'oxx' };
   document.getElementById('week').innerHTML = Object.entries(week).map(([d, s]) => `<div><b>${d}</b>${[...s].map(c => `<i class="${c}"></i>`).join('')}</div>`).join('');
 
-  // chalkboard reviews
-  const reviews = [
-    ['"Biscuit literally waits by the door for Ella."', '— Sarah & Biscuit'],
-    ['"Our nervous rescue was trotting along by week two."', '— Marcus & Duke'],
-    ['"Reliable, on time, and the photos make my whole workday."', '— Jamie & Mochi'],
+  // neighbor houses = reviews. [stop, left (desktop), left (phone), roof, wall, curtains, dog, quote, who]
+  const NEIGHBORS = [
+    [1, '14vw', '4vw', '#7A2E6E', '#FFF1E0', '#8EF0C9', 'olive', "She treats Olive like her own. We wouldn't trust anyone else.", 'Priya & Olive'],
+    [2, '76vw', '64vw', '#3C9988', '#FDE3EF', '#EE3DA4', 'pepper', 'Pepper comes home happy and tired every single time.', 'Tom & Pepper'],
+    [5, '30vw', '6vw', '#C92584', '#FFF1E0', '#FFCF5C', 'biscuit', 'Biscuit literally waits by the door for Ella. Best walker in the neighborhood.', 'Sarah & Biscuit'],
+    [5, '50vw', '38vw', '#54B6A5', '#FFF6E6', '#EE3DA4', 'duke', 'Our rescue is nervous with new people. Ella had him trotting along by week two.', 'Marcus & Duke'],
+    [5, '70vw', '70vw', '#EE3DA4', '#FDE3EF', '#8EF0C9', 'mochi', 'Reliable, on time, and the photo updates make my whole workday.', 'Jamie & Mochi'],
   ];
-  const cq = document.getElementById('chalkq'), cw = document.getElementById('chalkw'), cd = document.getElementById('chalkd');
-  reviews.forEach(() => cd.appendChild(document.createElement('i')));
-  let ri = 0;
-  const showReview = () => { cq.textContent = reviews[ri][0]; cw.textContent = reviews[ri][1]; [...cd.children].forEach((d, i) => d.classList.toggle('on', i === ri)); };
-  showReview();
-  setInterval(() => { ri = (ri + 1) % reviews.length; showReview(); }, 4200);
+  const houses = NEIGHBORS.map(([stop, l, lm, roof, wall, curtain, dogName, quote, who]) => {
+    const h = document.createElement('div');
+    h.className = 'nh'; h.tabIndex = 0; h.setAttribute('role', 'button');
+    h.setAttribute('aria-label', `Review from ${who}`);
+    h.style.cssText = `--l:${l};--lm:${lm};--wall:${wall};--curtain:${curtain}`;
+    h.dataset.l = parseFloat(l); h.dataset.lm = parseFloat(lm);
+    h.innerHTML = `<svg class="nh-roof" viewBox="0 0 120 50" preserveAspectRatio="none"><polygon points="3,48 60,3 117,48" fill="${roof}" stroke="#3A0B2A" stroke-width="4" stroke-linejoin="round"/></svg>
+      <div class="nh-wall"><div class="nh-win"><img data-photo="${dogName}" alt="${dogName}"></div><div class="nh-door"></div></div>
+      <div class="nh-ping">♥</div>
+      <div class="say">“${quote}”<b>${who}</b></div>`;
+    stops[stop].appendChild(h);
+    return h;
+  });
 
   // meter milestones
   const ms = stops.map((s, i) => {
@@ -488,6 +920,90 @@
   const horiz = matchMedia('(max-width: 700px)');
   const placeMs = () => ms.forEach((b, i) => { const pct = i / (N - 1) * 100; if (horiz.matches) { b.style.left = pct + '%'; b.style.top = ''; } else { b.style.top = pct + '%'; b.style.left = ''; } });
   horiz.addEventListener('change', placeMs); placeMs();
+  const edgeHouses = () => houses.forEach(h => {
+    const l = +(horiz.matches ? h.dataset.lm : h.dataset.l);
+    h.classList.toggle('l', l < 20); h.classList.toggle('r', l > 60);
+  });
+  horiz.addEventListener('change', edgeHouses); edgeHouses();
+  // phones have no hover: tap a house to open it, tap anywhere else to close
+  addEventListener('click', e => {
+    const h = e.target.closest('.nh');
+    houses.forEach(x => x.classList.toggle('on', x === h && !x.classList.contains('on')));
+  });
+
+  // ---------- choose your dog! ----------
+  const CAT_SVG = `<svg viewBox="0 0 100 72" aria-hidden="true">
+    <path class="ctail" d="M22 40 Q 4 34 8 12" fill="none" stroke="#E08A3C" stroke-width="7" stroke-linecap="round"/>
+    <rect class="cl b" x="30" y="48" width="8" height="22" rx="4" fill="#E08A3C" stroke="#2A0B26" stroke-width="2.5"/>
+    <rect class="cl" x="64" y="48" width="8" height="22" rx="4" fill="#E08A3C" stroke="#2A0B26" stroke-width="2.5"/>
+    <ellipse cx="48" cy="42" rx="30" ry="15" fill="#F2A65A" stroke="#2A0B26" stroke-width="3"/>
+    <path d="M40 29 q 3 8 0 14 M50 28 q 3 8 0 14 M60 29 q 3 8 0 13" stroke="#C9712A" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect class="cl" x="36" y="50" width="8" height="20" rx="4" fill="#F2A65A" stroke="#2A0B26" stroke-width="2.5"/>
+    <rect class="cl b" x="70" y="50" width="8" height="20" rx="4" fill="#F2A65A" stroke="#2A0B26" stroke-width="2.5"/>
+    <polygon points="72,22 74,4 84,16" fill="#F2A65A" stroke="#2A0B26" stroke-width="2.5" stroke-linejoin="round"/>
+    <polygon points="86,15 96,4 97,22" fill="#F2A65A" stroke="#2A0B26" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="84" cy="28" r="14" fill="#F2A65A" stroke="#2A0B26" stroke-width="3"/>
+    <circle cx="89" cy="25" r="2.4" fill="#2A0B26"/>
+    <path d="M96 29 l3 1.6 l-3 1.6z" fill="#EE3DA4"/>
+    <path d="M91 33 l10 1 M91 35 l9 5" stroke="#2A0B26" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`;
+  const picks = [...document.querySelectorAll('.pick')];
+  const walkingDog = document.querySelector('#dog .dog');
+  picks.forEach(p => {
+    const art = p.querySelector('.art');
+    if (p.dataset.breed === 'cat') { art.innerHTML = CAT_SVG; return; }
+    const c = walkingDog.cloneNode(true);
+    c.removeAttribute('aria-label'); c.setAttribute('aria-hidden', 'true');
+    art.appendChild(c);
+  });
+  const setBreed = b => {
+    document.documentElement.dataset.breed = b;
+    picks.forEach(p => { if (p.dataset.breed !== 'cat') { p.classList.toggle('sel', p.dataset.breed === b); p.setAttribute('aria-pressed', p.dataset.breed === b); } });
+    try { localStorage.setItem('ella-breed', b); } catch (e) {}
+  };
+  let savedBreed = 'medium';
+  try { savedBreed = localStorage.getItem('ella-breed') || 'medium'; } catch (e) {}
+  setBreed(['big', 'medium', 'small'].includes(savedBreed) ? savedBreed : 'medium');
+
+  // ---------- cats too! ----------
+  const catsSection = document.getElementById('cats'), catScene = document.getElementById('catscene'), catHouse = document.getElementById('chouse');
+  document.getElementById('wcat').innerHTML = CAT_SVG;
+  let catTimers = [];
+  const playCat = () => {
+    catTimers.forEach(clearTimeout);
+    catScene.classList.remove('strut', 'in'); catHouse.classList.remove('knock', 'open');
+    if (reduce) { catScene.classList.add('strut', 'in'); catHouse.classList.add('open'); return; }
+    void catScene.offsetWidth;
+    catTimers = [
+      setTimeout(() => catScene.classList.add('strut'), 50),
+      setTimeout(() => catHouse.classList.add('knock'), 1900),
+      setTimeout(() => catScene.classList.add('in'), 2450),
+      setTimeout(() => catHouse.classList.add('open'), 2900),
+    ];
+  };
+  const catPick = picks.find(p => p.dataset.breed === 'cat');
+  const navGo = document.getElementById('navGo'), chooseGo = document.getElementById('chooseGo');
+  const edgeWrap = document.getElementById('edgeWrap');
+  // cat mode: the cat house replaces the dog walk (and the walk links point to it)
+  const setCatMode = on => {
+    document.documentElement.dataset.pet = on ? 'cat' : 'dog';
+    catPick.classList.toggle('sel', on); catPick.setAttribute('aria-pressed', on);
+    picks.forEach(p => { if (p !== catPick) { const sel = !on && p.dataset.breed === document.documentElement.dataset.breed; p.classList.toggle('sel', sel); p.setAttribute('aria-pressed', sel); } });
+    catsSection.classList.toggle('on', on); walk.hidden = on; edgeWrap.hidden = on;
+    navGo.href = chooseGo.href = on ? '#cats' : '#walk';
+    navGo.textContent = on ? 'Cat visits ↓' : 'Take the walk ↓';
+    chooseGo.querySelector('span').textContent = on ? 'See cat visits' : "Let's go for a walk";
+    if (!on) catTimers.forEach(clearTimeout);
+    readScroll();
+  };
+  picks.forEach(p => p.addEventListener('click', () => {
+    if (p !== catPick) { setBreed(p.dataset.breed); return setCatMode(false); }
+    if (catPick.classList.contains('sel')) return setCatMode(false); // tap the cat again: back to the dogs
+    setCatMode(true);
+    catsSection.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(playCat, reduce ? 0 : 650);
+  }));
+  document.getElementById('catReplay').addEventListener('click', playCat);
 
   // falling leaves + butterflies
   if (!reduce) {
@@ -516,9 +1032,11 @@
   // main loop: scroll position -> eased walk progress
   let target = 0, cur = 0;
   const readScroll = () => {
+    if (walk.hidden) { meter.classList.remove('on'); meter.inert = true; nav.classList.remove('dark'); return; }
     const total = walk.offsetHeight - innerHeight;
     target = Math.min(1, Math.max(0, (scrollY - walk.offsetTop) / total));
     meter.classList.toggle('on', scrollY > walk.offsetTop - innerHeight * .5 && scrollY < walk.offsetTop + total + innerHeight * .3);
+    meter.inert = !meter.classList.contains('on'); // hidden meter: not clickable, not tabbable
     nav.classList.toggle('dark', scrollY >= walk.offsetTop - 30 && scrollY <= walk.offsetTop + total + 1);
   };
   addEventListener('scroll', readScroll, { passive: true }); addEventListener('resize', readScroll); readScroll();
@@ -557,8 +1075,188 @@
   };
   requestAnimationFrame(frame);
 
+  // ---------- walking east/west ----------
+  const stopPx = () => (walk.offsetHeight - innerHeight) / (N - 1);
+  const walkEnd = () => walk.offsetTop + walk.offsetHeight - innerHeight;
+  const inWalk = () => !walk.hidden && scrollY >= walk.offsetTop - 2 && scrollY <= walkEnd() + 2;
+  const stopNow = () => Math.round((scrollY - walk.offsetTop) / stopPx());
+  // our own eased scroll, so snapping works even where smooth scrolling doesn't
+  let glide = 0;
+  const glideTo = top => {
+    cancelAnimationFrame(glide);
+    const from = scrollY, t0 = performance.now(), dur = reduce ? 0 : 480;
+    const step = now => {
+      const t = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - t, 3);
+      scrollTo({ top: from + (top - from) * e, behavior: 'instant' });
+      if (t < 1) glide = requestAnimationFrame(step);
+    };
+    glide = requestAnimationFrame(step);
+  };
+  const goStop = i => glideTo(walk.offsetTop + Math.max(0, Math.min(N - 1, i)) * stopPx());
+  const hint = document.getElementById('swipeHint');
+  let sw = null;
+  // keyboard focus on something in another stop: never let the browser scroll the stage itself,
+  // walk to that stop instead
+  stage.addEventListener('scroll', () => { stage.scrollLeft = 0; stage.scrollTop = 0; });
+  // only follow focus the user moved with Tab: not focus a dialog hands back on close,
+  // a tap that focused a house, or the browser restoring focus when you come back to the tab
+  let tabbedAt = -1e9;
+  addEventListener('keydown', e => { if (e.key === 'Tab') tabbedAt = performance.now(); }, true);
+  stage.addEventListener('focusin', e => {
+    stage.scrollLeft = 0; stage.scrollTop = 0;
+    if (performance.now() - tabbedAt > 500 || document.querySelector('dialog[open]')) return;
+    const st = e.target.closest('.stop');
+    if (st && stops.indexOf(st) !== stopNow()) goStop(stops.indexOf(st));
+  });
+  stage.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch' || !inWalk()) return;
+    cancelAnimationFrame(glide);
+    sw = { x: e.clientX, y: e.clientY, top: scrollY, lock: null, dx: 0 };
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!sw) return;
+    const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+    if (!sw.lock && Math.hypot(dx, dy) > 8) sw.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (sw.lock !== 'x') return;
+    sw.dx = dx;
+    // dragging one screen-width sideways = one stop
+    scrollTo({ top: Math.max(walk.offsetTop, Math.min(walkEnd(), sw.top - dx * stopPx() / innerWidth)), behavior: 'instant' });
+    hint.classList.add('gone');
+  });
+  const endSwipe = () => {
+    if (sw && sw.lock === 'x') {
+      const from = Math.round((sw.top - walk.offsetTop) / stopPx()), now = (scrollY - walk.offsetTop) / stopPx();
+      goStop(sw.dx < -40 ? Math.max(from + 1, Math.round(now)) : sw.dx > 40 ? Math.min(from - 1, Math.round(now)) : from);
+    }
+    sw = null;
+  };
+  stage.addEventListener('pointerup', endSwipe); stage.addEventListener('pointercancel', endSwipe);
+  stage.addEventListener('wheel', e => {
+    if (!inWalk()) return;
+    const dx = e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX;
+    if (Math.abs(dx) <= Math.abs(e.deltaY) && !e.shiftKey) return; // normal up/down scrolling
+    e.preventDefault();
+    cancelAnimationFrame(glide);
+    scrollTo({ top: Math.max(walk.offsetTop, Math.min(walkEnd(), scrollY + dx * stopPx() / innerWidth)), behavior: 'instant' });
+  }, { passive: false });
+  addEventListener('keydown', e => {
+    if (!inWalk() || e.altKey || e.metaKey || e.ctrlKey) return;
+    if (document.querySelector('dialog[open]') || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); goStop(stopNow() + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goStop(stopNow() - 1); }
+  });
+
+  // ---------- tie the regulars banner to the two trees ----------
+  const bannerStop = document.getElementById('ropes').closest('.stop');
+  const drawRopes = () => {
+    const svg = document.getElementById('ropes'), sr = bannerStop.getBoundingClientRect();
+    const trees = bannerStop.querySelectorAll('.bigtree'), lt = trees[0], rt = trees[trees.length - 1];
+    // a point inside a tree, in the tree's own 200x300 drawing coordinates
+    const at = (el, x, y) => { const r = el.getBoundingClientRect(); return [r.left - sr.left + x / 200 * r.width, r.top - sr.top + y / 300 * r.height]; };
+    const c = bannerStop.querySelector('.cloth').getBoundingClientRect();
+    const holeL = [c.left - sr.left + 11, c.top - sr.top + 11], holeR = [c.right - sr.left - 11, c.top - sr.top + 11];
+    const branch = (from, to) => `<path d="M${from} L${to}" stroke="#3A0B2A" stroke-width="10" stroke-linecap="round"/><path d="M${from} L${to}" stroke="#7A4E2D" stroke-width="5" stroke-linecap="round"/>`;
+    const rope = (a, b) => {
+      if (Math.abs(b[0] - a[0]) < 8) return '';
+      const sag = Math.max(a[1], b[1]) + Math.abs(b[0] - a[0]) * .16;
+      return `<path d="M${a} Q${(a[0] + b[0]) / 2},${sag} ${b}" fill="none" stroke="#3A0B2A" stroke-width="3.5" stroke-linecap="round"/><circle cx="${a[0]}" cy="${a[1]}" r="5" fill="#3A0B2A"/>`;
+    };
+    const lTip = at(lt, 182, 58), rTip = at(rt, 18, 58);
+    svg.innerHTML = branch(at(lt, 140, 80), lTip) + branch(at(rt, 60, 80), rTip) + rope(lTip, holeL) + rope(rTip, holeR);
+  };
+  addEventListener('resize', drawRopes);
+  document.fonts?.ready.then(drawRopes);
+  new ResizeObserver(drawRopes).observe(bannerStop.querySelector('.cloth'));
+  drawRopes();
+
+  // ---------- booking form ----------
+  // To get submissions straight to your inbox (no email app needed), add ONE of these:
+  //  • Web3Forms (free, no account): get an access key at https://web3forms.com, paste it below
+  //  • Formspree (free tier): create a form at https://formspree.io, paste its endpoint URL below
+  // Left blank, "Send request" opens a pre-filled email to BOOKING.email instead.
+  const BOOKING = {
+    email: 'hello@ellamichaels.com',
+    web3formsKey: '01d63aa2-5409-4ea8-9332-7ef7bb5be730',
+    formspreeEndpoint: '', // e.g. 'https://formspree.io/f/abcdwxyz'
+  };
+  const dlg = document.getElementById('bookDlg'), form = document.getElementById('bookForm');
+  const done = document.getElementById('bookDone'), bErr = document.getElementById('bErr'), bSend = document.getElementById('bSend');
+  const SIZE = { big: 'Big dog', medium: 'Medium dog', small: 'Small dog' };
+  const openBooking = (kind, service) => {
+    form.hidden = false; done.hidden = true; bErr.textContent = '';
+    if (document.documentElement.dataset.pet === 'cat') kind = 'cat';
+    const size = kind === 'cat' ? 'Cat' : SIZE[document.documentElement.dataset.breed];
+    const radio = form.querySelector(`input[name="pet_size"][value="${size}"]`);
+    if (radio) radio.checked = true;
+    form.querySelectorAll('input[name="service"]').forEach(box => { box.checked = false; }); // fresh pick each time
+    form.querySelector('input[value="Cat visits"]').checked = kind === 'cat';
+    if (service) { const box = form.querySelector(`input[name="service"][value="${service}"]`); if (box) box.checked = true; }
+    dlg.showModal();
+    form.querySelector('#bName').focus({ preventScroll: true });
+  };
+  document.querySelectorAll('[data-book]').forEach(a => a.addEventListener('click', e => {
+    if (typeof dlg.showModal !== 'function') return; // very old browsers: keep the mailto link
+    e.preventDefault(); openBooking(a.dataset.book);
+  }));
+  const closeBooking = () => dlg.close();
+  document.getElementById('bookX').onclick = closeBooking;
+  document.getElementById('bookDoneX').onclick = closeBooking;
+  dlg.addEventListener('click', e => { if (e.target === dlg) closeBooking(); }); // click the backdrop to close
+
+  // ---------- landing cards -> details pop-up ----------
+  const infoDlg = document.getElementById('infoDlg'), infoBody = document.getElementById('infoBody');
+  const openInfo = key => {
+    infoBody.replaceChildren(document.getElementById('info-' + key).content.cloneNode(true));
+    const wk = infoBody.querySelector('#infoWeek');
+    if (wk) wk.innerHTML = '<span></span>' + Object.keys(week).map(d => `<b>${d}</b>`).join('') +
+      ['Morning', 'Midday', 'Evening'].map((t, i) => `<span class="t">${t}</span>` + Object.values(week).map(v => `<i class="${v[i]}"></i>`).join('')).join('');
+    infoBody.querySelector('[data-info-book]').onclick = e => { infoDlg.close(); openBooking(undefined, e.currentTarget.dataset.infoBook); };
+    infoDlg.showModal();
+  };
+  document.querySelectorAll('.mcard').forEach(c => {
+    c.addEventListener('click', () => openInfo(c.dataset.info));
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openInfo(c.dataset.info); } });
+  });
+  document.getElementById('infoX').onclick = () => infoDlg.close();
+  infoDlg.addEventListener('click', e => { if (e.target === infoDlg) infoDlg.close(); });
+
+  const collect = () => {
+    const fd = new FormData(form);
+    return {
+      name: fd.get('name').trim(), email: fd.get('email').trim(), phone: fd.get('phone').trim(),
+      pet_name: fd.get('pet_name').trim(), pet_size: fd.get('pet_size') || 'Not sure',
+      services: fd.getAll('service').join(', ') || 'Not sure yet', when: fd.get('when').trim(), allergies: fd.get('allergies').trim(), notes: fd.get('notes').trim(),
+    };
+  };
+  const summary = d => `Name: ${d.name}\nEmail: ${d.email}\nPhone: ${d.phone || '-'}\nPet: ${d.pet_name} (${d.pet_size})\nServices: ${d.services}\nWhen: ${d.when || '-'}\nAllergies / no-gos: ${d.allergies}\nNotes: ${d.notes || '-'}`;
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); bErr.textContent = '';
+    if (!form.checkValidity()) { form.reportValidity(); bErr.textContent = 'Please fill in your name, email, pet\'s name and the treat check.'; return; }
+    if (form.botcheck.checked) return; // spam bot
+    const d = collect(), subject = `Booking request: ${d.pet_name} (${d.pet_size})`;
+    const finish = msg => { form.hidden = true; done.hidden = false; document.getElementById('bookDoneMsg').textContent = msg; form.reset(); };
+    if (!BOOKING.web3formsKey && !BOOKING.formspreeEndpoint) {
+      location.href = `mailto:${BOOKING.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(summary(d))}`;
+      return finish('Your email app should have opened with everything filled in. Just hit send!');
+    }
+    bSend.disabled = true; bSend.textContent = 'Sending…';
+    try {
+      const res = BOOKING.web3formsKey
+        ? await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ access_key: BOOKING.web3formsKey, subject, from_name: "Ella's Dog Walks site", replyto: d.email, ...d }) })
+        : await fetch(BOOKING.formspreeEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ _subject: subject, _replyto: d.email, ...d }) });
+      if (!res.ok) throw new Error(res.status);
+      finish(`Thanks, ${d.name.split(' ')[0]}! I'll be in touch within a day to set up a meet & greet with ${d.pet_name}.`);
+    } catch (err) {
+      bErr.innerHTML = `Couldn't send that. Please try again, or email <a href="mailto:${BOOKING.email}">${BOOKING.email}</a>.`;
+    } finally { bSend.disabled = false; bSend.textContent = 'Send request'; }
+  });
+
+  applyPhotos();
+
   // no word-highlighting on double/triple click (drag-to-select still works)
-  addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
+  addEventListener('mousedown', e => { if (e.detail > 1 && !e.target.closest('input, textarea, select')) e.preventDefault(); });
 
   // paw prints on click
   const pawSVG = '<svg viewBox="0 0 24 24" fill="#8EF0C9" stroke="#3A0B2A" stroke-width="1"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
